@@ -27,7 +27,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Adjust to match frontend URL
+    origin: ["http://localhost:5173", "https://deedar-uk.web.app"], // Adjust to match frontend URL
     credentials: true,
   },
 });
@@ -37,7 +37,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://deedar-uk.web.app"],
     credentials: true,
   })
 );
