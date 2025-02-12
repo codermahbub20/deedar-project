@@ -42,8 +42,6 @@ app.use(
   })
 );
 
-
-
 // Attach Socket.IO to request object
 app.use((req, res, next) => {
   req.io = io;
@@ -70,13 +68,14 @@ app.post("/print", async (req, res) => {
   const order = req.body;
 
   try {
-    // Auto-detect USB printer
+    // Detect USB Printer
     const devices = escpos.USB.findPrinter();
     if (devices.length === 0) {
       console.error("No USB printer found.");
       return res.status(500).json({ error: "No printer detected. Check USB connection." });
     }
 
+    // Specify the correct USB device for your Epson TM-T20III
     const device = new escpos.USB();
     const printer = new escpos.Printer(device);
 
@@ -103,39 +102,22 @@ app.post("/print", async (req, res) => {
           .text("===================================")
           .text(`Order Number: ${order.orderNumber}`)
           .text(`Created At: ${order.createdAt}`)
-          .text("===================================");
+          .text("===================================")
+          .text("Qty   Item               Price");
 
-        // Print table header
-        printer.tableCustom([
-          { text: "Qty", align: "LEFT", width: 0.2 },
-          { text: "Item", align: "CENTER", width: 0.5 },
-          { text: "Price", align: "RIGHT", width: 0.3 },
-        ]);
-
-        // Print each item
+        // Print each item in the order
         order.items.forEach((item) => {
-          printer.tableCustom([
-            { text: item.quantity.toString(), align: "LEFT", width: 0.2 },
-            { text: item.name, align: "CENTER", width: 0.5 },
-            { text: `£ ${item.price.toFixed(2)}`, align: "RIGHT", width: 0.3 },
-          ]);
+          printer.text(
+            `${item.quantity.toString().padEnd(4)} ${item.name.padEnd(15)} £${item.price.toFixed(2)}`
+          );
         });
 
         // Print totals and payment info
         printer
           .text("===================================")
-          .tableCustom([
-            { text: "Delivery Charge:", align: "LEFT", width: 0.7 },
-            { text: `£ ${order.extraCharge.toFixed(2)}`, align: "RIGHT", width: 0.3 },
-          ])
-          .tableCustom([
-            { text: "Subtotal:", align: "LEFT", width: 0.7 },
-            { text: `£ ${order.totalPrice.toFixed(2)}`, align: "RIGHT", width: 0.3 },
-          ])
-          .tableCustom([
-            { text: "Total:", align: "LEFT", width: 0.7 },
-            { text: `£ ${order.totalPrice.toFixed(2)}`, align: "RIGHT", width: 0.3 },
-          ])
+          .text(`Delivery Charge: £${order.extraCharge.toFixed(2)}`)
+          .text(`Subtotal: £${order.totalPrice.toFixed(2)}`)
+          .text(`Total: £${order.totalPrice.toFixed(2)}`)
           .text("===================================")
           .text(`Payment Method: ${order.paymentMethod}`)
           .text(`Payment Status: ${order.paymentStatus}`)
