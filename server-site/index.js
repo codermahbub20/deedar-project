@@ -68,27 +68,19 @@ app.post("/print", async (req, res) => {
   const order = req.body;
 
   try {
-    // Detect USB Printer
-    const devices = escpos.USB.findPrinter();
-    if (devices.length === 0) {
-      console.error("No USB printer found.");
-      return res.status(500).json({ error: "No printer detected. Check USB connection." });
-    }
-
-    // Specify the correct USB device for your Epson TM-T20III
-    const device = new escpos.USB();
+    // Set Vendor ID and Product ID for USB Printer (adjust based on your printer)
+    const device = new escpos.USB(0x04b8, 0x0e15); // Example for Epson TM-T20III
     const printer = new escpos.Printer(device);
 
-    device.open((error) => {
-      if (error) {
-        console.error("Error opening printer:", error);
+    device.open((err) => {
+      if (err) {
+        console.error("Printer Connection Error:", err);
         return res.status(500).json({ error: "Failed to connect to printer" });
       }
 
       try {
-        // Print order receipt
+        // Print receipt
         printer
-          .font("a")
           .align("ct")
           .style("b")
           .size(1, 1)
@@ -105,11 +97,12 @@ app.post("/print", async (req, res) => {
           .text("===================================")
           .text("Qty   Item               Price");
 
-        // Print each item in the order
+        // Print each item properly formatted
         order.items.forEach((item) => {
-          printer.text(
-            `${item.quantity.toString().padEnd(4)} ${item.name.padEnd(15)} £${item.price.toFixed(2)}`
-          );
+          let qty = item.quantity.toString().padEnd(4);
+          let name = item.name.padEnd(15);
+          let price = `£${item.price.toFixed(2)}`;
+          printer.text(`${qty} ${name} ${price}`);
         });
 
         // Print totals and payment info
