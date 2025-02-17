@@ -212,7 +212,10 @@ const MenuBox = ({ addToCart }) => {
               <ul>
                 {locations.map((loc) => (
                   <li key={loc._id} className="border-b text-base">
-                    {loc.locationName} ----- £{loc.price}
+                    {loc.locationName} ----- £
+                    {isNaN(Number(loc.price))
+                      ? "0.00"
+                      : Number(loc.price).toFixed(2)}
                   </li>
                 ))}
               </ul>

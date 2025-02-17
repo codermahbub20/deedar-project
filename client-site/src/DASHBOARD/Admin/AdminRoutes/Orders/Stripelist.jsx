@@ -224,7 +224,7 @@ const Stripelist = () => {
                 <th className="px-4 py-2 text-left">Order Date</th>
                 <th className="px-4 py-2 text-left">Total</th>
                 <th className="px-4 py-2 text-left">Payment Status</th>
-                <th className="px-4 py-2 text-left">Spicy Level</th>
+                {/* <th className="px-4 py-2 text-left">Spicy Level</th> */}
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -241,7 +241,7 @@ const Stripelist = () => {
                     </td>
                     <td className="px-4 py-2">${order?.totalPrice}</td>
                     <td className="px-4 py-2">{order?.paymentStatus}</td>
-                    <td className="px-4 py-2">{order?.spiceLevel}</td>
+                    {/* <td className="px-4 py-2">{order?.spiceLevel}</td> */}
                     <td className="px-4 py-2 flex space-x-4">
                       <button
                         onClick={(e) => {

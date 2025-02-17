@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// import ReactToPrint from "react-to-print";
+import ReactToPrint from "react-to-print";
 import Swal from "sweetalert2"; // Import SweetAlert2
 import useAxiosSecure from "../../../../Hooks/useAxiosSecure";
 
@@ -238,12 +238,14 @@ const PreparingOrders = () => {
               ref={orderDetailsRef}
               style={{
                 fontFamily: "monospace",
-                width: "350px",
+                width: "80mm", // POS receipt width
+                minHeight: "auto",
                 margin: "auto",
-                padding: "20px",
+                padding: "10px",
                 border: "1px solid #ddd",
                 background: "#fff",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                fontSize: "12px", // Small font size for receipts
               }}
             >
               {/* Header */}
@@ -427,12 +429,33 @@ const PreparingOrders = () => {
               </p>
             </div>
             <div style={{ textAlign: "center", marginTop: "20px" }}>
-              <button
-                className="bg-red-500 text-black py-2 px-2 rounded-lg"
-                onClick={handlePrint}
-              >
-                Print via POS
-              </button>
+              <ReactToPrint
+                trigger={() => (
+                  <button
+                    className="bg-orange-300 py-2 px-2 rounded-lg"
+                    style={{ marginLeft: "10px" }}
+                  >
+                    Print Customer Copy
+                  </button>
+                )}
+                content={() => orderDetailsRef.current}
+                pageStyle={`
+    @page {
+      size: 80mm auto;
+      margin: 0;
+    }
+    body {
+      font-family: monospace;
+      font-size: 12px;
+      margin: 0;
+    }
+    #orderDetails {
+      width: 80mm;
+      font-size: 12px;
+      padding: 5px;
+    }
+  `}
+              />
             </div>
           </div>
         ) : (

@@ -141,7 +141,12 @@ const AddLocation = () => {
             {locations.map((loc) => (
               <tr key={loc._id} className="border-b">
                 <td className="py-2 px-4">{loc.locationName}</td>
-                <td className="py-2 px-4">£{loc.price}</td>
+                <td className="py-2 px-4">
+                  £
+                  {isNaN(Number(loc.price))
+                    ? "0.00"
+                    : Number(loc.price).toFixed(2)}
+                </td>
                 <td className="py-2 px-4 space-x-2">
                   <button
                     onClick={() => handleUpdateLocation(loc._id)}
