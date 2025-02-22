@@ -140,9 +140,29 @@ const Cart = () => {
     setShowModal(false);
   };
 
-  const getTotalPrice = () => {
-    return orderType === "online" ? totalPrice + DELIVERY_CHARGE : totalPrice;
+  const calculateTotalPrice = () => {
+    return items
+      .map((item) => {
+        const basePrice =
+          item.spice && item.variantPrice
+            ? item.variantPrice + item.spicePrice
+            : item.spice && !item.variantPrice
+            ? item.spicePrice + item.price
+            : !item.spice && item.variantPrice
+            ? item.variantPrice
+            : item.price;
+  
+        return basePrice * (item.quantity ?? 1);
+      })
+      .reduce((acc, curr) => acc + curr, 0);
   };
+  
+  const getTotalPrice = () => {
+    return orderType === "online"
+      ? calculateTotalPrice() + DELIVERY_CHARGE
+      : calculateTotalPrice();
+  };
+  
 
   return (
     <div className="text-black">

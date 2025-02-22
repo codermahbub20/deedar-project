@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import Notifications from "./Notifications";
 
 const AcceptOrder = () => {
   const [orders, setOrders] = useState([]);
@@ -125,6 +126,7 @@ const AcceptOrder = () => {
   console.log(orders, "orders");
   return (
     <div className="p-4 text-black">
+      <Notifications/>
       <h3 className="text-2xl font-bold mb-4">Pending Orders</h3>
       {orders.length > 0 ? (
         <div

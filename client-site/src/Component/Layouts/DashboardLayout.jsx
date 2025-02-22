@@ -240,7 +240,7 @@ const DashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-6 bg-gray-400 text-black lg:ml-48">
         <h2 className="text-2xl font-bold mb-4 text-center">
-          {role === "Admin" ? "Admin Dashboard" : "User Dashboard"}
+          {role === "Admin" ? "Admin Dashboard" : "User Profile"}
         </h2>
         <Outlet />
       </div>

@@ -238,7 +238,7 @@ const PreparingOrders = () => {
               ref={orderDetailsRef}
               style={{
                 fontFamily: "monospace",
-                width: "80mm", // POS receipt width
+                width: "330px", // POS receipt width
                 minHeight: "auto",
                 margin: "auto",
                 padding: "10px",
