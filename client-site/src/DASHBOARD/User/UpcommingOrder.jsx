@@ -5,6 +5,7 @@ import useAuth from "../../Hooks/useAuth";
 const UpcomingOrders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [orders1, setOrders1] = useState([]);
   const [loading, setLoading] = useState(true);
   const axiosSecure = useAxiosSecure();
 
@@ -16,7 +17,7 @@ const UpcomingOrders = () => {
         const response = await axiosSecure.get("/api/orders/user", {
           params: { email: user.email },
         });
-        setOrders(response.data);
+        setOrders1(response.data);
       } catch (error) {
         console.error(
           "Error fetching user orders:",
@@ -30,10 +31,29 @@ const UpcomingOrders = () => {
     fetchUserOrders();
   }, [user?.email]);
 
+  console.log("orders222222", orders);
+
+  useEffect(() => {
+    const fetchPreparingOrders = async () => {
+      try {
+        const response = await axiosSecure.get("/api/orders/preparing");
+        setOrders(response.data);
+      } catch (error) {
+        console.error("Error fetching preparing orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPreparingOrders();
+  }, []);
+  console.log("orders1111111111", orders1);
   // Filter out expired orders
   const filteredOrders = orders.filter(
     (order) => order.status !== "Expired" && order.status !== "Canceled"
   );
+
+  console.log(orders);
 
   // Calculate remaining time in mm:ss format
   const calculateRemainingTime = (
