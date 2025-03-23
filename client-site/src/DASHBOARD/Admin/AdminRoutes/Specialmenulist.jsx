@@ -12,9 +12,7 @@ const Specialmenulist = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axiosSecure.get(
-          "/api/special-menu"
-        );
+        const response = await axiosSecure.get("/api/special-menu");
         setSpecialmenulist(response.data);
         setLoading(false);
       } catch (error) {

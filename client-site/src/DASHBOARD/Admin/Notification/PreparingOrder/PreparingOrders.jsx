@@ -11,18 +11,18 @@ const PreparingOrders = () => {
   // Fetch orders on component mount
   const axiosSecure = useAxiosSecure();
 
-  const handlePrint = () => {
-    axiosSecure
-      .post("/print", selectedOrder)
-      .then((response) => {
-        console.log(response.data.message);
-        alert("Printed successfully!");
-      })
-      .catch((error) => {
-        console.error("Error printing:", error);
-        alert("Failed to print!");
-      });
-  };
+  // const handlePrint = () => {
+  //   axiosSecure
+  //     .post("/print", selectedOrder)
+  //     .then((response) => {
+  //       console.log(response.data.message);
+  //       alert("Printed successfully!");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error printing:", error);
+  //       alert("Failed to print!");
+  //     });
+  // };
 
   useEffect(() => {
     const fetchPreparingOrders = async () => {
@@ -136,6 +136,7 @@ const PreparingOrders = () => {
       }
     }
   };
+  console.log(selectedOrder);
 
   const handleRowClick = (order) => setSelectedOrder(order);
 
@@ -238,14 +239,14 @@ const PreparingOrders = () => {
               ref={orderDetailsRef}
               style={{
                 fontFamily: "monospace",
-                width: "330px", // POS receipt width
+                width: "100mm", // POS receipt width
                 minHeight: "auto",
-                margin: "auto",
-                padding: "10px",
-                border: "1px solid #ddd",
+                // margin: "auto",
+                padding: "15px",
+
                 background: "#fff",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                fontSize: "12px", // Small font size for receipts
+                fontSize: "20px", // Small font size for receipts
               }}
             >
               {/* Header */}
@@ -308,11 +309,13 @@ const PreparingOrders = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedOrder.items.map((item, index) => (
+                  {selectedOrder.items?.map((item, index) => (
                     <tr key={index}>
                       <td style={{ padding: "5px" }}>{item.quantity}</td>
                       <td style={{ padding: "5px" }}>
-                        {item.name}({item?.variant}) -{item?.spiceName}
+                        {item.subItem ? item.subItem.name : item.name}
+                        {item.variant && ` (${item.variant})`}
+                        {item.spiceName && ` -${item.spiceName}`}
                       </td>
                       <td style={{ padding: "5px" }}>
                         {item.subItems && typeof item.subItems === "object" && (
@@ -380,9 +383,9 @@ const PreparingOrders = () => {
                     <td>Subtotal:</td>
                     <td style={{ textAlign: "right" }}>
                       £{" "}
-                      {isNaN(parseFloat(selectedOrder.totalPrice))
+                      {isNaN(parseFloat(selectedOrder?.totalPrice))
                         ? "N/A"
-                        : parseFloat(selectedOrder.totalPrice).toFixed(2)}
+                        : parseFloat(selectedOrder?.totalPrice).toFixed(2)}
                     </td>
                   </tr>
                   <tr>
@@ -441,17 +444,17 @@ const PreparingOrders = () => {
                 content={() => orderDetailsRef.current}
                 pageStyle={`
     @page {
-      size: 80mm auto;
+      size: 100mm auto;
       margin: 0;
     }
     body {
       font-family: monospace;
-      font-size: 12px;
+      font-size: 20px;
       margin: 0;
     }
     #orderDetails {
-      width: 80mm;
-      font-size: 12px;
+      width: 100mm;
+      font-size: 20px;
       padding: 5px;
     }
   `}

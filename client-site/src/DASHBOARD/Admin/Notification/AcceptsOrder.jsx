@@ -23,6 +23,12 @@ const AcceptOrder = () => {
     };
 
     fetchPendingOrders();
+
+    // Set interval to fetch orders every second
+    const intervalId = setInterval(fetchPendingOrders, 1000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
   // Accept order and set preparation time
   const handleAccept = async (orderId) => {
@@ -126,7 +132,7 @@ const AcceptOrder = () => {
   console.log(orders, "orders");
   return (
     <div className="p-4 text-black">
-      <Notifications/>
+      <Notifications />
       <h3 className="text-2xl font-bold mb-4">Pending Orders</h3>
       {orders.length > 0 ? (
         <div

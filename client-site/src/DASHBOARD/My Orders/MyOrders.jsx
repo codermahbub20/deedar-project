@@ -10,28 +10,31 @@ const MyOrders = () => {
   // const [error, setError] = useState(null);
   const axiosSecure = useAxiosSecure();
 
- 
   useEffect(() => {
-    if (!user?.email) return; // Ensure user email is available
-  
+    if (!user?.email) return;
+
     const fetchUserOrders = async () => {
       try {
-        const response = await axiosSecure.get(
-          `api/orders/user`,
-          { params: { email: user.email } } // Axios handles query parameters automatically
-        );
+        const response = await axiosSecure.get(`api/orders/user`, {
+          params: { email: user.email },
+        });
         setOrders(response.data);
       } catch (error) {
-        console.error("Error fetching user orders:", error.response?.data || error.message);
+        console.error(
+          "Error fetching user orders:",
+          error.response?.data || error.message
+        );
       } finally {
         setLoading(false);
       }
     };
-  
-    fetchUserOrders();
-  }, [user?.email]);
-  
 
+    fetchUserOrders(); // Initial fetch
+
+    const interval = setInterval(fetchUserOrders, 1000); // Fetch every second
+
+    return () => clearInterval(interval); // Cleanup function to clear interval on unmount
+  }, [user?.email]);
 
   if (loading) return <p>Loading...</p>;
   // if (error) return <p className="text-red-600">{error}</p>;
@@ -44,20 +47,28 @@ const MyOrders = () => {
             <table className="min-w-full leading-normal">
               <thead>
                 <tr>
-                  <th className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left 
-                  text-sm uppercase font-normal">
+                  <th
+                    className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left 
+                  text-sm uppercase font-normal"
+                  >
                     Item Name
                   </th>
-                  <th className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left 
-                  text-sm uppercase font-normal">
+                  <th
+                    className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left 
+                  text-sm uppercase font-normal"
+                  >
                     Quantity
                   </th>
-                  <th className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left text-sm 
-                  uppercase font-normal">
+                  <th
+                    className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left text-sm 
+                  uppercase font-normal"
+                  >
                     Price
                   </th>
-                  <th className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left text-sm
-                   uppercase font-normal">
+                  <th
+                    className="px-5 py-3 bg-white border-b border-gray-200 text-gray-800 text-left text-sm
+                   uppercase font-normal"
+                  >
                     Date
                   </th>
                 </tr>

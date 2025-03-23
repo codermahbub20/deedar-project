@@ -281,7 +281,7 @@ router.patch("/api/orders/:id", async (req, res) => {
     }
 
     // Update the order fields
-    order.time = time || order.time;
+    order.time += time || order.time;
     order.status = status || order.status;
     order.reason = reason || 'Ongoing';
 

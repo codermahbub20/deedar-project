@@ -113,16 +113,16 @@ const Cart = () => {
       }
     }
   };
-  // console.log(items)
+  console.log("itemssssssss", items);
 
   const handleOrderTypeChange = (type) => {
-    if (totalPrice.toFixed(2) <= 13.09 && type === "online") {
+    if (totalPrice.toFixed(2) <= 8 && type === "online") {
       Swal.fire({
         icon: "warning",
         title: "Sorry",
-        text: `Your total is under £13.09. Please add £ ${(
-          13.09 - totalPrice
-        ).toFixed(2)} more to place an online order.`,
+        text: `Your total is under £8. Please add £ ${(8 - totalPrice).toFixed(
+          2
+        )} more to place an online order.`,
         confirmButtonText: "Okay",
         confirmButtonColor: "#f44336",
       });
@@ -151,18 +151,17 @@ const Cart = () => {
             : !item.spice && item.variantPrice
             ? item.variantPrice
             : item.price;
-  
+
         return basePrice * (item.quantity ?? 1);
       })
       .reduce((acc, curr) => acc + curr, 0);
   };
-  
+
   const getTotalPrice = () => {
     return orderType === "online"
       ? calculateTotalPrice() + DELIVERY_CHARGE
       : calculateTotalPrice();
   };
-  
 
   return (
     <div className="text-black">
@@ -189,8 +188,10 @@ const Cart = () => {
                   >
                     +
                   </button>
-                  {item.name}{" "}
-                  <span className="lg:text-[8px] text-xs">
+                  <span className="lg:text-[16px] text-xs">
+                    {item.name && `${item.name}`}
+                  </span>{" "}
+                  <span className="lg:text-[10px] text-xs">
                     {item.variant && `(${item.variant})`}
                   </span>{" "}
                   <span className="lg:text-[8px] text-xs">
@@ -201,9 +202,7 @@ const Cart = () => {
                   {/* Display special menu platter items under the category name */}
                   {item.category === "Special Platter" && (
                     <span className="text-sm text-gray-600">
-                      {" "}
-                      {(item.name = "")}
-                      {item.category}(
+                      {item?.name}(
                       {item.items.map((subItem) => subItem.name).join(", ")})
                     </span>
                   )}
@@ -294,9 +293,9 @@ const Cart = () => {
                   .reduce((acc, curr) => acc + curr, 0)
                   .toFixed(2)}
               </div>
-              {getTotalPrice() <= 13.09 ? (
+              {getTotalPrice() <= 8 ? (
                 <p className="text-xs">
-                  Your total is under £13.09. Please add more to place an online
+                  Your total is under £8. Please add more to place an online
                   order.
                 </p>
               ) : (

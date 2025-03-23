@@ -21,6 +21,7 @@ const MenuBox = ({ addToCart }) => {
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
   const [specialMenuData, setSpecialMenuData] = useState([]);
   const [specialMenuCat, setSpecialcatMenuData] = useState([]);
+  const [currentSet, setCurrentSet] = useState();
   const [isSpecialMenuOpen, setIsSpecialMenuOpen] = useState(false);
   const { isRestaurantOpen, openingTime, closingTime, loadings } =
     useRestaurantStatus();
@@ -32,7 +33,7 @@ const MenuBox = ({ addToCart }) => {
     name: "",
     price: 0,
   });
-  console.log(SpecePriceName, "ccheck here ");
+  // console.log(SpecePriceName, "ccheck here ");
   // Toggle function for special menu
   const toggleSpecialMenu = () => {
     setIsSpecialMenuExpanded((prev) => !prev);
@@ -61,28 +62,34 @@ const MenuBox = ({ addToCart }) => {
   const SpecialMenuprice = specialMenuData.find(
     (item) => item.category === "Chef Choice"
   )?.Price;
-  const currentDay = new Date().getDay();
-  // const currentDay = 0;
+
+  const currentDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+
   const handleSpecialMenuClick = (item) => {
     const specialMenu = specialMenuData.find(
       (items) =>
         items.category === "Mid Week Special Platter" && item.set === items.set
     );
+
     const specialMenuPrice = specialMenu?.Price;
     setSpecialMenuPriceId(specialMenuPrice);
-    if (currentDay >= 1 && currentDay <= 4) {
+
+    // Check if the current day is Sunday (0), Tuesday (2), Wednesday (3), or Thursday (4)
+    if ([0, 2, 3, 4].includes(currentDay)) {
       setSpecialcatMenuData(specialMenu.subcategories || []);
       setIsSpecialMenuOpen(true);
+      setCurrentSet(item.set);
     } else {
       Swal.fire({
         icon: "warning",
         title: "Sorry",
-        text: "The Midweek Special Menu is only available from Monday to Thursday.",
+        text: "The Midweek Special Menu is only available on Sunday, Tuesday, Wednesday, and Thursday.",
         confirmButtonText: "Okay",
         confirmButtonColor: "#f44336",
       });
     }
   };
+
   const categories = specialMenuData.find(
     (item) => item.category === "Chef Choice"
   );
@@ -116,7 +123,7 @@ const MenuBox = ({ addToCart }) => {
     setIsStillCantDecideOpen(true);
   };
 
-  console.log(SpecePriceName, "ccheck here ");
+  // console.log(SpecePriceName, "ccheck here ");
   const calculateTotalPrice = (item) => {
     let totalPrice = item.price || 0;
 
@@ -258,7 +265,7 @@ const MenuBox = ({ addToCart }) => {
         )}
 
         {isSpecialMenuExpanded &&
-          (currentDay >= 1 && currentDay <= 4 ? (
+          ([0, 2, 3, 4].includes(currentDay) ? (
             <div
               className="transition-all duration-500 ease-in-out py-10 overflow-hidden"
               style={{
@@ -266,7 +273,7 @@ const MenuBox = ({ addToCart }) => {
               }}
             >
               <ul className="border-b-2 border-dotted pt-2 border-red-900 ">
-                {specialMenuData.map(
+                {specialMenuData?.map(
                   (item, idx) =>
                     item.category === "Mid Week Special Platter" && (
                       <li key={idx}>
@@ -280,7 +287,7 @@ const MenuBox = ({ addToCart }) => {
                           >
                             {item.set ? item.set : "new set"}{" "}
                             <span className="text-xs text-gray-600">
-                              (Tuesday, Wednesday & Thursday ONLY)
+                              (Sunday, Tuesday, Wednesday, or Thursday ONLY)
                             </span>
                           </span>
                           <span
@@ -325,7 +332,8 @@ const MenuBox = ({ addToCart }) => {
            text-center transform rotate-[-10deg] absolute top-0 left-0 
            right-0 bottom-0"
                         >
-                          Available only from Monday to Thursday!
+                          Available only from Sunday, Tuesday, Wednesday, or
+                          Thursday ONLY!
                         </p>
                       </div>
                       <div className="flex justify-between items-center pb-2 text-xl cursor-pointer hover:underline-offset-2 hover:underline">
@@ -360,6 +368,7 @@ const MenuBox = ({ addToCart }) => {
               dispatch({ type: "ADD_TO_CART", payload: platter });
               setIsSpecialMenuOpen(false);
             }}
+            set={currentSet}
           />
         )}
 
@@ -559,7 +568,7 @@ const MenuBox = ({ addToCart }) => {
             priceId={SpecialMenuprice}
             onAddToCart={(platter) => {
               // Ensure platter is an array and contains items
-              if (Array.isArray(platter.items) && platter.items.length <= 2) {
+              if (Array.isArray(platter.items) && platter.items.length <= 3) {
                 console.log(platter);
                 dispatch({ type: "ADD_TO_CART", payload: platter });
                 setIsStillCantDecideOpen(false);
