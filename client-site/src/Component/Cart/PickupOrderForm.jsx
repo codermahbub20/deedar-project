@@ -34,6 +34,7 @@ const PickupOrderForm = () => {
     area: "",
     paymentMethod: "",
   });
+  // console.log("total priceeeeee", parseFloat(totalPrice));
   const [isProcessing, setIsProcessing] = useState(false);
   const [extraCharge, setExtraCharge] = useState(0);
   const [deliveryLocations, setDeliveryLocations] = useState([]);
@@ -107,7 +108,7 @@ const PickupOrderForm = () => {
       zipcode: formData.zipcode,
       area: formData.area,
       items,
-      totalPrice: totalPrice + extraCharge,
+      totalPrice: totalPrice,
       paymentMethod: formData.paymentMethod,
       paymentStatus,
       status: "x",
@@ -157,9 +158,7 @@ const PickupOrderForm = () => {
 
         <div className="flex gap-5">
           <p>Order Type: {orderType}</p>
-          <p className="mb-3">
-            Total Price: £{(totalPrice + extraCharge).toFixed(2)}
-          </p>
+          <p className="mb-3">Total Price: £{totalPrice}</p>
         </div>
         {/* Email Field */}
         <InputField

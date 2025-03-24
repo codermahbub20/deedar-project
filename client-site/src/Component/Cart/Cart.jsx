@@ -49,7 +49,7 @@ const Cart = () => {
     const orderData = {
       chefEmail: "mkrefat5@gmail.com",
       userEmail: user?.email || "guest@example.com", // Fallback email for testing
-      totalPrice: getTotalPrice(),
+      totalPrice: parseFloat(getTotalPrice().toFixed(2)),
       items: formattedItems,
       paymentStatus: status,
       paymentMethod: method,
@@ -113,7 +113,7 @@ const Cart = () => {
       }
     }
   };
-  console.log("itemssssssss", items);
+  // console.log("itemssssssss", items);
 
   const handleOrderTypeChange = (type) => {
     if (totalPrice.toFixed(2) <= 8 && type === "online") {
@@ -145,22 +145,24 @@ const Cart = () => {
       .map((item) => {
         const basePrice =
           item.spice && item.variantPrice
-            ? item.variantPrice + item.spicePrice
+            ? parseFloat(item.variantPrice || 0) +
+              parseFloat(item.spicePrice || 0)
             : item.spice && !item.variantPrice
-            ? item.spicePrice + item.price
+            ? parseFloat(item.spicePrice || 0) + parseFloat(item.price || 0)
             : !item.spice && item.variantPrice
-            ? item.variantPrice
-            : item.price;
+            ? parseFloat(item.variantPrice || 0)
+            : parseFloat(item.price || 0);
 
-        return basePrice * (item.quantity ?? 1);
+        const totalPrice = basePrice * (parseFloat(item.quantity) || 1);
+        return Number(totalPrice.toFixed(2)); // Use toFixed(2) instead of Math.round
       })
       .reduce((acc, curr) => acc + curr, 0);
   };
 
   const getTotalPrice = () => {
     return orderType === "online"
-      ? calculateTotalPrice() + DELIVERY_CHARGE
-      : calculateTotalPrice();
+      ? parseFloat(calculateTotalPrice()) + DELIVERY_CHARGE
+      : parseFloat(calculateTotalPrice());
   };
 
   return (
@@ -255,21 +257,22 @@ const Cart = () => {
             <div className="text-end">
               {" "}
               <div className="mt-2 text-lg">
-                Subtotal: £
-                {items
-                  .map((item) => {
-                    const total =
-                      (item.spice && item.variantPrice
-                        ? item.variantPrice + item.spicePrice
-                        : item.spicelevel && !item.variantPrice
-                        ? item.spicePrice + item.price
-                        : !item.spicelevel && item.variantPrice
-                        ? item.variantPrice
-                        : item.price) * (item.quantity ?? 1);
-                    return total;
-                  })
-                  .reduce((acc, curr) => acc + curr, 0)
-                  .toFixed(2)}
+                SubTotal: £
+                {parseFloat(
+                  items
+                    .map((item) => {
+                      const total =
+                        (item.spice && item.variantPrice
+                          ? item.variantPrice + item.spicePrice
+                          : item.spicelevel && !item.variantPrice
+                          ? item.spicePrice + item.price
+                          : !item.spicelevel && item.variantPrice
+                          ? item.variantPrice
+                          : item.price) * (item.quantity ?? 1);
+                      return total;
+                    })
+                    .reduce((acc, curr) => acc + curr, 0)
+                ).toFixed(2)}
               </div>
               {orderType === "online" && (
                 <div className="mt-2 text-lg">
@@ -278,20 +281,21 @@ const Cart = () => {
               )}
               <div className="mt-2 text-lg">
                 Total: £
-                {items
-                  .map((item) => {
-                    const total =
-                      (item.spice && item.variantPrice
-                        ? item.variantPrice + item.spicePrice
-                        : item.spicelevel && !item.variantPrice
-                        ? item.spicePrice + item.price
-                        : !item.spicelevel && item.variantPrice
-                        ? item.variantPrice
-                        : item.price) * (item.quantity ?? 1);
-                    return total;
-                  })
-                  .reduce((acc, curr) => acc + curr, 0)
-                  .toFixed(2)}
+                {parseFloat(
+                  items
+                    .map((item) => {
+                      const total =
+                        (item.spice && item.variantPrice
+                          ? item.variantPrice + item.spicePrice
+                          : item.spicelevel && !item.variantPrice
+                          ? item.spicePrice + item.price
+                          : !item.spicelevel && item.variantPrice
+                          ? item.variantPrice
+                          : item.price) * (item.quantity ?? 1);
+                      return total;
+                    })
+                    .reduce((acc, curr) => acc + curr, 0)
+                ).toFixed(2)}
               </div>
               {getTotalPrice() <= 8 ? (
                 <p className="text-xs">
@@ -346,7 +350,7 @@ const Cart = () => {
             <button
               onClick={handlePlaceOrder}
               className="text-lg text-gray-600 hover:text-red-950 hover:underline mt-2 disabled:no-underline disabled:text-gray-700"
-              disabled={getTotalPrice().toFixed(2) === "0.00"}
+              disabled={parseFloat(getTotalPrice().toFixed(2)) === 0}
             >
               Place Order
             </button>

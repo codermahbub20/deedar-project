@@ -11,6 +11,7 @@ const MenuModal = ({ item, onClose }) => {
 
   const dispatch = useDispatch();
 
+  // Calculate the total price
   const calculateTotalPrice = () => {
     let totalPrice = item.price || 0;
 
@@ -24,7 +25,8 @@ const MenuModal = ({ item, onClose }) => {
       totalPrice += selectedSpicyLevel.price || 0;
     }
 
-    return totalPrice.toFixed(2);
+    // Return total price rounded to 2 decimal places
+    return totalPrice;
   };
 
   const handleAddToCart = () => {
@@ -69,7 +71,7 @@ const MenuModal = ({ item, onClose }) => {
 
         <div className="space-y-4 flex gap-20 flex-wrap align-middle items-center">
           {/* Variety selection */}
-          {item.varieties.length > 0 && (
+          {item.varieties && item.varieties.length > 0 && (
             <div>
               <h3 className="font-medium mb-2 text-orange-700 text-lg">
                 Select Varieties:
@@ -84,14 +86,14 @@ const MenuModal = ({ item, onClose }) => {
                     onChange={() => handleVarietyChange(variety)} // Call the handler
                     className="mr-2"
                   />
-                  {variety.name} - £{variety.price.toFixed(2)}
+                  {variety.name} - £{parseFloat(variety.price) || 0}
                 </label>
               ))}
             </div>
           )}
 
           {/* Spice level selection */}
-          {item.spicyLevels.length > 0 && (
+          {item.spicyLevels && item.spicyLevels.length > 0 && (
             <div>
               <h3 className="font-medium mb-2 text-red-900 text-xl">
                 Select Spice Level:
@@ -100,13 +102,13 @@ const MenuModal = ({ item, onClose }) => {
                 <label key={idx} className="block">
                   <input
                     type="radio"
-                    name="spice"
+                    name={`spice-${item.id}`} // Unique group for this item
                     value={level.name}
                     checked={selectedSpicyLevel?.name === level.name}
                     onChange={() => handleSpicyLevelChange(level)}
                     className="mr-2"
                   />
-                  {level.name} - £{level.price.toFixed(2)}
+                  {level.name} - £{level.price || 0}
                 </label>
               ))}
             </div>

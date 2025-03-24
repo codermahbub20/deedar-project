@@ -137,7 +137,7 @@ const MenuBox = ({ addToCart }) => {
       totalPrice += SpecePriceName.price;
     }
 
-    return totalPrice.toFixed(2); // Returning the price in two decimal format
+    return totalPrice; // Returning the price in two decimal format
   };
 
   return (
@@ -489,7 +489,7 @@ const MenuBox = ({ addToCart }) => {
                                         if (spice) {
                                           setSpicenameandprice({
                                             name: spice.name,
-                                            price: spice.price,
+                                            price: Number(spice.price),
                                           });
                                         }
                                       }}
@@ -498,7 +498,7 @@ const MenuBox = ({ addToCart }) => {
                                       {item.spicyLevels.map((spicy, idx) => (
                                         <option key={idx} value={spicy.name}>
                                           {spicy.name} - £
-                                          {spicy.price.toFixed(2)}
+                                          {spicy?.price.toFixed(2)}
                                         </option>
                                       ))}
                                     </select>
@@ -509,14 +509,18 @@ const MenuBox = ({ addToCart }) => {
                                 <button
                                   className="hover:underline"
                                   onClick={() => {
-                                    const totalPrices =
-                                      (SpecePriceName?.price || 0) + item.price;
+                                    const totalPrices = (
+                                      Number(SpecePriceName?.price || 0) +
+                                      parseFloat(item.price)
+                                    ).toFixed(2);
 
                                     addToCart({
                                       ...item,
                                       spice: SpecePriceName?.name || null,
                                       spicePrice: SpecePriceName?.price || 0,
-                                      price: totalPrices.toFixed(2),
+                                      price: (
+                                        parseFloat(totalPrices) || 0
+                                      ).toFixed(2),
                                     });
                                     refetch();
                                     setSpicenameandprice({
