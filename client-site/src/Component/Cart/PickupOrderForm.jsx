@@ -158,7 +158,7 @@ const PickupOrderForm = () => {
 
         <div className="flex gap-5">
           <p>Order Type: {orderType}</p>
-          <p className="mb-3">Total Price: £{totalPrice}</p>
+          <p className="mb-3">Total Price: £{totalPrice.toFixed(2)}</p>
         </div>
         {/* Email Field */}
         <InputField

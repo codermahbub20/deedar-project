@@ -11,13 +11,14 @@ const MyOrders = () => {
   const axiosSecure = useAxiosSecure();
 
   useEffect(() => {
-    if (!user?.email) return;
-
+    if (!user?.email) return; // Ensure user email is available
+    console.log("user?.email", user?.email);
     const fetchUserOrders = async () => {
       try {
-        const response = await axiosSecure.get(`api/orders/user`, {
-          params: { email: user.email },
-        });
+        const response = await axiosSecure.get(
+          `api/orders/user`,
+          { params: { email: user.email } } // Axios handles query parameters automatically
+        );
         setOrders(response.data);
       } catch (error) {
         console.error(
@@ -33,7 +34,7 @@ const MyOrders = () => {
 
     const interval = setInterval(fetchUserOrders, 1000); // Fetch every second
 
-    return () => clearInterval(interval); // Cleanup function to clear interval on unmount
+    return () => clearInterval(interval);
   }, [user?.email]);
 
   if (loading) return <p>Loading...</p>;
