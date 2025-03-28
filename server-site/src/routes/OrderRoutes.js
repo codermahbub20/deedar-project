@@ -249,6 +249,7 @@ router.get('/api/orders/preparing', async (req, res) => {
 
 
 
+// GET request to fetch orders for a specific user (filtered by email)
 router.get('/api/orders/user', async (req, res) => {
   const userEmail = req.query.email; // Get user email from query parameters
 
