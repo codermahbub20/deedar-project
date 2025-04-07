@@ -39,9 +39,12 @@ const AddMenuItem = () => {
               spicyLevels: spicyLevels.filter(
                 (level) => level.name && level.price
               ),
-              extraItems: addExtraItem.filter(
-                (item) => item.name && item.price
-              ),
+              extraItems: addExtraItem
+                .filter((item) => item.name && item.price)
+                .map((item) => ({
+                  ...item,
+                  price: Number(item.price),
+                })),
             },
           ],
     };

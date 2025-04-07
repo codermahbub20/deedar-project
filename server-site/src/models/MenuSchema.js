@@ -18,7 +18,7 @@ const SpicyLevelSchema = new mongoose.Schema({
 
 const extraItemsSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  price: { type: String, }
+  price: { type: Number, }
 }, { _id: false });
 
 
