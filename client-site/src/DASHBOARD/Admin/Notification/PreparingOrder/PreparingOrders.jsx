@@ -83,6 +83,10 @@ const PreparingOrders = () => {
           text: "The order status has been updated to Done.",
           icon: "success",
         });
+        // const response = await axiosSecure.patch(`/api/orders/${orderId}`, {
+        //   time: 0,
+        //   updatedAt: new Date().toISOString(),
+        // });
       } else {
         // Rollback in case of failure
         setOrders((prevOrders) => [...prevOrders, { _id: orderId }]);
@@ -109,19 +113,41 @@ const PreparingOrders = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await axiosSecure.patch(
-          `/api/orders/${orderId}`,
-          { time: 5 } // Axios automatically sets the Content-Type to application/json for JSON payloads
+        // Get current order
+        const currentOrder = orders.find((order) => order._id === orderId);
+
+        // Calculate new time
+        const currentRemainingTime = calculateRemainingTime(
+          currentOrder.updatedAt,
+          currentOrder.time
         );
+        const [minutes, seconds] = currentRemainingTime.split(":").map(Number);
+        const currentSeconds = minutes * 60 + seconds;
+        const newTotalSeconds = currentSeconds + 5 * 60;
+        const newMinutes = Math.floor(newTotalSeconds / 60);
+
+        // Update backend
+        const response = await axiosSecure.patch(`/api/orders/${orderId}`, {
+          time: newMinutes,
+          updatedAt: new Date().toISOString(),
+        });
 
         if (response.status === 200) {
-          const updatedOrder = response.data;
-          console.log("5 minutes added:", updatedOrder);
+          // const updatedOrder = response.data;
+
+          // Update frontend state
           setOrders((prevOrders) =>
             prevOrders.map((order) =>
-              order._id === orderId ? { ...order, time: order.time + 5 } : order
+              order._id === orderId
+                ? {
+                    ...order,
+                    time: newMinutes,
+                    updatedAt: new Date().toISOString(),
+                  }
+                : order
             )
           );
+
           Swal.fire({
             title: "Time Extended!",
             text: "5 minutes have been added to the preparation time.",
@@ -133,6 +159,11 @@ const PreparingOrders = () => {
           "Error updating order time:",
           error.response?.data || error.message
         );
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to add extra time to the order.",
+          icon: "error",
+        });
       }
     }
   };

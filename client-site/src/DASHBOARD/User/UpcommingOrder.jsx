@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import useAuth from "../../Hooks/useAuth";
+import ReactToPrint from "react-to-print";
 
 const UpcomingOrders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
-  // const [orders1, setOrders1] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const axiosSecure = useAxiosSecure();
+  const orderDetailsRef = useRef();
 
   useEffect(() => {
     if (!user?.email) return;
@@ -20,7 +22,7 @@ const UpcomingOrders = () => {
         setOrders(response.data);
       } catch (error) {
         console.error(
-          "Error fetching user orders:",
+          "Error fetching orders:",
           error.response?.data || error.message
         );
       } finally {
@@ -28,17 +30,17 @@ const UpcomingOrders = () => {
       }
     };
 
-    fetchUserOrders();
+    const pollOrders = async () => {
+      await fetchUserOrders();
+      setTimeout(pollOrders, 1); // Millisecond interval
+    };
+
+    pollOrders();
+
+    return () => clearTimeout(pollOrders);
   }, [user?.email]);
 
-  // Filter out expired orders
-  const filteredOrders = orders.filter(
-    (order) => order.status !== "Expired" && order.status !== "Canceled"
-  );
-
-  console.log(orders);
-
-  // Calculate remaining time in mm:ss format
+  // Modify your calculateRemainingTime function
   const calculateRemainingTime = (
     updatedAt,
     preparationTime,
@@ -50,6 +52,7 @@ const UpcomingOrders = () => {
     const elapsedSeconds = Math.floor((now - updatedTime) / 1000);
     const remainingSeconds = totalSeconds - elapsedSeconds;
 
+    // Return "00:00" if time has expired
     if (remainingSeconds <= 0) {
       return "00:00";
     }
@@ -64,8 +67,8 @@ const UpcomingOrders = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setOrders((prevOrders) => {
-        return prevOrders.map((order) => ({
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => ({
           ...order,
           remainingTime: calculateRemainingTime(
             order.updatedAt,
@@ -73,103 +76,484 @@ const UpcomingOrders = () => {
             order.extendedTime || 0
           ),
           displayTime: order.time + (order.extendedTime || 0),
-        }));
-      });
+        }))
+      );
     }, 1000);
-
     return () => clearInterval(interval);
   }, [orders]);
 
-  return (
-    <div className="p-4 text-black">
-      {loading && "loading ......."}
-      <h3 className="text-2xl font-bold mb-4">Your Upcoming Orders</h3>
-      {filteredOrders.length > 0 ? (
-        <div className="grid grid-cols-1 justify-center align-middle items-center sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredOrders.map((order) => {
-            const remainingTime = calculateRemainingTime(
-              order.updatedAt,
-              order.time,
-              order.extendedTime || 0
-            );
+  const getStatusDisplay = (status) => {
+    if (status === "Expired") {
+      return <span className="text-green-600 font-bold">Order Done</span>;
+    }
 
-            return (
+    // const timeDisplay = remainingTime === "00:00" ? "00:00" : remainingTime;
+    return (
+      <>
+        <p>{status}</p>
+      </>
+    );
+  };
+
+  const handleRowClick = (order) => setSelectedOrder(order);
+
+  if (loading) {
+    return <div>Loading orders...</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-3">
+      <div className="p-4 text-white col-span-2">
+        <h3 className="text-2xl font-bold mb-4">Your Upcoming Orders</h3>
+        {orders.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 text-black lg:grid-cols-2 gap-4">
+            {orders.map((order) => (
               <div
                 key={order._id}
-                className="border rounded-lg p-4 shadow-md bg-orange-100 w-full"
+                className="border rounded-lg p-4 shadow-md bg-white"
               >
-                <div className="mt-3 text-center">
-                  {/* Show different messages based on order status */}
-                  {order.status === "Preparing" && !order.time && (
-                    <p className="text-lg font-medium">
-                      Admin will soon accept your order
-                    </p>
-                  )}
-
-                  {order.status === "Pending" && (
-                    <p className="text-lg font-medium">Your order is pending</p>
-                  )}
-
-                  {order.status === "Rejected" && order.reason && (
-                    <p className="text-lg font-medium text-black">
-                      Reason: {order.reason}
-                    </p>
-                  )}
-
-                  {order.status == "Preparing" &&
-                    order.status !== "Pending" && (
-                      <>
-                        <h5 className="font-medium text-4xl font-chewy text-green-600">
-                          {remainingTime}
-                        </h5>
-                        <div className="text-sm mt-2">
-                          Total Time: {order.displayTime} minutes
-                          {order.extendedTime > 0 && (
-                            <span className="text-blue-600 ml-2">
-                              (+{order.extendedTime} mins added)
-                            </span>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                  <p>{order.status}</p>
-                </div>
-
+                <h4 className="text-xl font-semibold mb-2">
+                  Order #{order.orderNumber}
+                </h4>
                 <p>
                   <strong>User Email:</strong> {order.userEmail}
                 </p>
                 <p>
-                  <strong>Original Preparation Time:</strong> {order.time}{" "}
-                  minutes
+                  <strong>Total Price:</strong> £
+                  {order.totalPrice ? Number(order.totalPrice).toFixed(2) : 0}
                 </p>
-
+                <p>
+                  <strong>Preparation Time:</strong> {order.time} minutes
+                </p>
                 <h5 className="font-medium mt-3">Items:</h5>
                 {order.items.map((item, index) => (
-                  <span key={index} className="flex text-xs flex-wrap gap-1">
+                  <div key={index} className="flex text-xs flex-wrap gap-1">
                     {item.subItems.length > 0 &&
                       item.subItems?.map((subItem) => subItem.name).join(", ")}
                     {item.name}{" "}
                     {item.subItems.map((subItem, idx) => (
-                      <span key={idx} className="text-xs">
-                        {subItem.name}
-                      </span>
+                      <div key={idx}>
+                        <span className="text-xs">{subItem.name}</span>
+                      </div>
                     ))}
                     <span>
                       {" "}
-                      variant :`({item.variant}) ` spicelevel:`({item.spiceName}
-                      `
+                      variant :`({item.variant}) ` spicelevel:`($
+                      {item.spiceName}`
                     </span>
                     (x{item.quantity})
-                  </span>
+                  </div>
                 ))}
+                <div className="mt-3">
+                  <h5 className="font-medium text-black">
+                    Remaining Time:
+                    {order.status === "Expired" ? "00:00" : order.remainingTime}
+                  </h5>
+                  <p>{getStatusDisplay(order.status)}</p>
+                </div>
+                <div className="flex flex-wrap justify-between items-center">
+                  <button
+                    onClick={() => handleRowClick(order)}
+                    className="mt-3 border-2 border-green-300 text-green-600 py-1 px-3 rounded"
+                  >
+                    PRINT
+                  </button>
+                </div>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div>No orders to display</div>
-      )}
+            ))}
+          </div>
+        ) : (
+          <p>No orders to display</p>
+        )}
+      </div>
+      <div className="mt-16">
+        {selectedOrder ? (
+          <div>
+            <div
+              ref={orderDetailsRef}
+              style={{
+                fontFamily: "monospace",
+                width: "100mm",
+                minHeight: "auto",
+                padding: "15px",
+                background: "#fff",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                fontSize: "20px",
+              }}
+            >
+              {/* Header */}
+              <h2
+                style={{ textAlign: "center", margin: "0", fontSize: "18px" }}
+              >
+                Deedar Express Uk
+              </h2>
+              <p style={{ fontSize: "12px", textAlign: "center" }}>
+                Address: {selectedOrder?.address}
+              </p>
+              <p style={{ fontSize: "12px", textAlign: "center" }}>
+                Zip Code: {selectedOrder?.zipcode}
+              </p>
+              <p style={{ fontSize: "12px", textAlign: "center" }}>
+                Area: {selectedOrder?.area}
+              </p>
+              <p style={{ fontSize: "12px", textAlign: "center" }}>
+                Contact No: {selectedOrder?.mobile}
+              </p>
+              <hr style={{ margin: "10px 0" }} />
+
+              {/* Order Details */}
+              <h3
+                style={{
+                  textAlign: "center",
+                  margin: "10px 0",
+                  fontSize: "16px",
+                }}
+              >
+                Order Number: {selectedOrder.orderNumber}
+              </h3>
+              <p style={{ fontSize: "12px", margin: "5px 0" }}>
+                CreatedAt: {selectedOrder.createdAt} {selectedOrder.time}
+              </p>
+              <hr style={{ margin: "10px 0" }} />
+
+              {/* Items */}
+              <table
+                style={{
+                  width: "100%",
+                  fontSize: "12px",
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "5px" }}>
+                      Quantity
+                    </th>
+                    <th style={{ textAlign: "left", padding: "5px" }}>
+                      Item Name
+                    </th>
+                    <th style={{ textAlign: "left", padding: "5px" }}>
+                      Sub Items
+                    </th>
+                    <th style={{ textAlign: "right", padding: "5px" }}>
+                      Price
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedOrder.items?.map((item, index) => (
+                    <tr key={index}>
+                      <td style={{ padding: "5px" }}>{item.quantity}</td>
+                      <td style={{ padding: "5px" }}>
+                        {item.subItem ? item.subItem.name : item.name}
+                        {item.variant && ` (${item.variant})`}
+                        {item.spiceName && ` -${item.spiceName}`}
+                      </td>
+                      <td style={{ padding: "5px" }}>
+                        {item.subItems && typeof item.subItems === "object" && (
+                          <ul style={{ paddingLeft: "15px", fontSize: "11px" }}>
+                            {Object.values(item.subItems).map(
+                              (subItem, subIndex) => (
+                                <li key={subIndex}>{subItem.name}</li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                      </td>
+                      <td style={{ textAlign: "right", padding: "5px" }}>
+                        £{" "}
+                        {isNaN(parseFloat(item.price))
+                          ? "N/A"
+                          : parseFloat(item.price).toFixed(2)}{" "}
+                        {item?.spicePrice}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Payment Details */}
+              <p style={{ fontSize: "12px", marginBottom: "5px" }}>
+                {selectedOrder.paymentMethod} {selectedOrder.paymentStatus}
+              </p>
+              <table
+                style={{
+                  width: "100%",
+                  fontSize: "12px",
+                  marginBottom: "10px",
+                }}
+              >
+                <tbody>
+                  <tr>
+                    <td>Delivery Charge:</td>
+                    <td style={{ textAlign: "right" }}>
+                      £{" "}
+                      {isNaN(parseFloat(selectedOrder.extraCharge))
+                        ? "N/A"
+                        : parseFloat(selectedOrder.extraCharge).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Spicy Charge:</td>
+                    {selectedOrder.items.map((item, index) => (
+                      <td key={index}>
+                        {item.spicePrice && (
+                          <span style={{ textAlign: "left" }}>
+                            £{" "}
+                            {isNaN(parseFloat(item.spicePrice))
+                              ? "N/A"
+                              : parseFloat(item.spicePrice).toFixed(2)}
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Subtotal:</td>
+                    <td style={{ textAlign: "right" }}>
+                      £{" "}
+                      {isNaN(parseFloat(selectedOrder?.totalPrice))
+                        ? "N/A"
+                        : parseFloat(selectedOrder?.totalPrice).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ fontWeight: "bold" }}>Total:</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                      £{" "}
+                      {isNaN(parseFloat(selectedOrder.totalPrice))
+                        ? "N/A"
+                        : parseFloat(selectedOrder.totalPrice).toFixed(2)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p style={{ fontSize: "12px", marginTop: "10px" }}>
+                Transaction Type: {selectedOrder.paymentMethod} <br />
+                Authorization: {selectedOrder.paymentStatus} <br />
+                Payment ID: {selectedOrder._id} <br />
+              </p>
+
+              <hr style={{ margin: "10px 0" }} />
+
+              {/* Tip Section */}
+              <p style={{ fontSize: "12px", margin: "10px 0" }}>
+                + Tip: _____________
+              </p>
+              <p style={{ fontSize: "12px", marginBottom: "10px" }}>
+                = Total: _____________
+              </p>
+              <p style={{ textAlign: "center", fontSize: "12px" }}>
+                X _______________________________
+              </p>
+
+              <hr style={{ margin: "10px 0" }} />
+
+              {/* Footer */}
+              <p
+                style={{
+                  textAlign: "center",
+                  fontSize: "12px",
+                  marginTop: "10px",
+                }}
+              >
+                Customer Copy <br />
+                Thanks for visiting <br />
+                {selectedOrder.restaurantName}
+              </p>
+            </div>
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <ReactToPrint
+                trigger={() => (
+                  <button
+                    className="bg-orange-300 py-2 px-2 rounded-lg"
+                    style={{ marginLeft: "10px" }}
+                  >
+                    Print Customer Copy
+                  </button>
+                )}
+                content={() => orderDetailsRef.current}
+                pageStyle={`
+                  @page {
+                    size: 100mm auto;
+                    margin: 0;
+                  }
+                  body {
+                    font-family: monospace;
+                    font-size: 20px;
+                    margin: 0;
+                  }
+                  #orderDetails {
+                    width: 100mm;
+                    font-size: 20px;
+                    padding: 5px;
+                  }
+                `}
+              />
+            </div>
+          </div>
+        ) : (
+          <span className="text-xl mt-16 text-center font-bold">
+            <h3 className="text-2xl font-bold mb-4">Your print preview</h3>
+            <div>
+              <div
+                ref={orderDetailsRef}
+                style={{
+                  fontFamily: "monospace",
+                  width: "350px",
+                  margin: "auto",
+                  padding: "20px",
+                  border: "1px solid #ddd",
+                  background: "#fff",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {/* Header */}
+                <h2
+                  style={{ textAlign: "center", margin: "0", fontSize: "18px" }}
+                >
+                  Deedar Express Uk
+                </h2>
+                <p style={{ fontSize: "12px", textAlign: "center" }}>
+                  Address: {selectedOrder?.address}
+                </p>
+                <p style={{ fontSize: "12px", textAlign: "center" }}>
+                  Zip Code: {selectedOrder?.zipcode}
+                </p>
+                <p style={{ fontSize: "12px", textAlign: "center" }}>
+                  Area: {selectedOrder?.area}
+                </p>
+                <p style={{ fontSize: "12px", textAlign: "center" }}>
+                  Contact No: {selectedOrder?.mobile}
+                </p>
+                <hr style={{ margin: "10px 0" }} />
+
+                {/* Order Details */}
+                <h3
+                  style={{
+                    textAlign: "center",
+                    margin: "10px 0",
+                    fontSize: "16px",
+                  }}
+                >
+                  Order Number:..............
+                </h3>
+                <p style={{ fontSize: "12px", margin: "5px 0" }}>
+                  CreatedAt: ..............
+                </p>
+                <hr style={{ margin: "10px 0" }} />
+
+                {/* Items */}
+                <table
+                  style={{
+                    width: "100%",
+                    fontSize: "12px",
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "5px" }}>
+                        Quantity
+                      </th>
+                      <th style={{ textAlign: "left", padding: "5px" }}>
+                        Item Name
+                      </th>
+                      <th style={{ textAlign: "left", padding: "5px" }}>
+                        Sub Items
+                      </th>
+                      <th style={{ textAlign: "right", padding: "5px" }}>
+                        Price
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: "5px" }}>....</td>
+                      <td style={{ padding: "5px" }}>......</td>
+                      <td style={{ padding: "5px" }}>
+                        <ul style={{ paddingLeft: "15px", fontSize: "11px" }}>
+                          <li>.....</li>
+                        </ul>
+                      </td>
+                      <td style={{ textAlign: "right", padding: "5px" }}>£ </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Payment Details */}
+                <p style={{ fontSize: "12px", marginBottom: "5px" }}>
+                  ..............
+                </p>
+                <table
+                  style={{
+                    width: "100%",
+                    fontSize: "12px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <tbody>
+                    <tr>
+                      <td>Delivery Charge:</td>
+                      <td style={{ textAlign: "right" }}>£ </td>
+                    </tr>
+                    <tr>
+                      <td>Spicy Charge:</td>
+                      <td>..............</td>
+                    </tr>
+                    <tr>
+                      <td>Subtotal:</td>
+                      <td style={{ textAlign: "right" }}>£ </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Total:</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                        £{" "}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <p style={{ fontSize: "12px", marginTop: "10px" }}>
+                  Transaction Type:.............. <br />
+                  Authorization:.............. <br />
+                  Payment ID:..............
+                  <br />
+                </p>
+
+                <hr style={{ margin: "10px 0" }} />
+
+                {/* Tip Section */}
+                <p style={{ fontSize: "12px", margin: "10px 0" }}>
+                  + Tip: _____________
+                </p>
+                <p style={{ fontSize: "12px", marginBottom: "10px" }}>
+                  = Total: _____________
+                </p>
+                <p style={{ textAlign: "center", fontSize: "12px" }}>
+                  X _______________________________
+                </p>
+
+                <hr style={{ margin: "10px 0" }} />
+
+                {/* Footer */}
+                <p
+                  style={{
+                    textAlign: "center",
+                    fontSize: "12px",
+                    marginTop: "10px",
+                  }}
+                >
+                  Customer Copy <br />
+                  Thanks for visiting <br />
+                  .......
+                </p>
+              </div>
+            </div>
+          </span>
+        )}
+      </div>
     </div>
   );
 };
