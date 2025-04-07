@@ -4,60 +4,53 @@ import { FaTimes } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 
 const MenuModal = ({ item, onClose }) => {
-  // Single selection for variety
   const [selectedVariety, setSelectedVariety] = useState(null);
-  // Single selection for spice level (radio button)
   const [selectedSpicyLevel, setSelectedSpicyLevel] = useState(null);
-
+  const [addExtraItem, setAddExtraItem] = useState([]);
   const dispatch = useDispatch();
 
-  // Calculate the total price
   const calculateTotalPrice = () => {
     let totalPrice = item.price || 0;
-
-    // Add the price for the selected variety (if any)
-    if (selectedVariety) {
-      totalPrice += selectedVariety.price || 0;
+    if (selectedVariety) totalPrice += selectedVariety.price || 0;
+    if (selectedSpicyLevel) totalPrice += selectedSpicyLevel.price || 0;
+    if (addExtraItem.length > 0) {
+      addExtraItem.forEach((extra) => {
+        totalPrice += extra.price || 0;
+      });
     }
-
-    // Add the price for the selected spice level (if any)
-    if (selectedSpicyLevel) {
-      totalPrice += selectedSpicyLevel.price || 0;
-    }
-
-    // Return total price rounded to 2 decimal places
-    return totalPrice;
+    return Number(totalPrice.toFixed(2));
   };
 
   const handleAddToCart = () => {
-    const totalPrice = calculateTotalPrice(); // Ensure it's a number
-
+    const totalPrice = calculateTotalPrice();
     const updatedItem = {
       ...item,
       variant: selectedVariety?.name || null,
       variantPrice: selectedVariety?.price || 0,
       spice: selectedSpicyLevel?.name || null,
       spicePrice: selectedSpicyLevel?.price || 0,
-      totalPrice: totalPrice, // Ensure total price is included
+      extraItems: addExtraItem,
+      totalPrice,
     };
-
-    // Dispatch to update cart with the selected item
-    dispatch({
-      type: "ADD_TO_CART",
-      payload: updatedItem,
-    });
-
+    dispatch({ type: "ADD_TO_CART", payload: updatedItem });
     onClose();
   };
 
-  const handleVarietyChange = (variety) => {
-    setSelectedVariety(variety); // Set the selected variety
+  const handleVarietyChange = (variety) => setSelectedVariety(variety);
+  const handleSpicyLevelChange = (level) => setSelectedSpicyLevel(level);
+
+  const handleExtraItemsChange = (extraItem) => {
+    const exists = addExtraItem.find((item) => item.name === extraItem.name);
+    if (exists) {
+      setAddExtraItem(
+        addExtraItem.filter((item) => item.name !== extraItem.name)
+      );
+    } else {
+      setAddExtraItem([...addExtraItem, extraItem]);
+    }
   };
 
-  const handleSpicyLevelChange = (level) => {
-    // Set only one spicy level (radio button behavior)
-    setSelectedSpicyLevel(level);
-  };
+  console.log("Selected Extra Items:", addExtraItem);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -69,9 +62,9 @@ const MenuModal = ({ item, onClose }) => {
           </button>
         </div>
 
-        <div className="space-y-4 flex gap-20 flex-wrap align-middle items-center">
-          {/* Variety selection */}
-          {item.varieties && item.varieties.length > 0 && (
+        <div className="space-y-4">
+          {/* Variety Selection */}
+          {item.varieties?.length > 0 && (
             <div>
               <h3 className="font-medium mb-2 text-orange-700 text-lg">
                 Select Varieties:
@@ -80,20 +73,19 @@ const MenuModal = ({ item, onClose }) => {
                 <label key={idx} className="block">
                   <input
                     type="radio"
-                    name={`variety-${item.id}`} // Unique group for this item
-                    value={variety.name}
-                    checked={selectedVariety?.name === variety.name} // Check the selected variety
-                    onChange={() => handleVarietyChange(variety)} // Call the handler
+                    name={`variety-${item.id}`}
+                    checked={selectedVariety?.name === variety.name}
+                    onChange={() => handleVarietyChange(variety)}
                     className="mr-2"
                   />
-                  {variety.name} - £{parseFloat(variety.price) || 0}
+                  {variety.name} - £{parseFloat(variety.price).toFixed(2)}
                 </label>
               ))}
             </div>
           )}
 
-          {/* Spice level selection */}
-          {item.spicyLevels && item.spicyLevels.length > 0 && (
+          {/* Spice Level Selection */}
+          {item.spicyLevels?.length > 0 && (
             <div>
               <h3 className="font-medium mb-2 text-red-900 text-xl">
                 Select Spice Level:
@@ -102,13 +94,34 @@ const MenuModal = ({ item, onClose }) => {
                 <label key={idx} className="block">
                   <input
                     type="radio"
-                    name={`spice-${item.id}`} // Unique group for this item
-                    value={level.name}
+                    name={`spice-${item.id}`}
                     checked={selectedSpicyLevel?.name === level.name}
                     onChange={() => handleSpicyLevelChange(level)}
                     className="mr-2"
                   />
-                  {level.name} - £{level.price || 0}
+                  {level.name} - £{parseFloat(level.price).toFixed(2)}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {/* Extra Items Selection */}
+          {item.extraItems?.length > 0 && (
+            <div>
+              <h3 className="font-medium mb-2 text-green-900 text-xl">
+                Select Extra Items:
+              </h3>
+              {item.extraItems.map((extra, idx) => (
+                <label key={idx} className="block">
+                  <input
+                    type="checkbox"
+                    checked={addExtraItem.some(
+                      (item) => item.name === extra.name
+                    )}
+                    onChange={() => handleExtraItemsChange(extra)}
+                    className="mr-2"
+                  />
+                  {extra.name} - £{parseFloat(extra.price).toFixed(2)}
                 </label>
               ))}
             </div>

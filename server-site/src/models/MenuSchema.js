@@ -16,6 +16,11 @@ const SpicyLevelSchema = new mongoose.Schema({
   price: { type: Number, }
 }, { _id: false });
 
+const extraItemsSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  price: { type: String, }
+}, { _id: false });
+
 
 
 const ItemSchema = new mongoose.Schema({
@@ -24,7 +29,8 @@ const ItemSchema = new mongoose.Schema({
   descrpition: { type: String },// hey  can you please send the description from the frontend 
   varieties: [VarietySchema],
   itemsIncluded: [IncludedItemSchema],
-  spicyLevels: [SpicyLevelSchema]
+  spicyLevels: [SpicyLevelSchema],
+  extraItems: [extraItemsSchema],
 
 });
 

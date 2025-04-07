@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import useMenuData from "../../../Hooks/Menudatea"; // Adjust path as needed
+import useMenuData from "../../../Hooks/Menudatea";
 import Swal from "sweetalert2";
-// import axios from "axios";
 import AddSpecialmenu from "./AddSpecialmenu";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
-import './AddSpecialmenu'
+import "./AddSpecialmenu";
 
 const AddMenuItem = () => {
-  const { categories, refetch } = useMenuData(); // Use the hook to get categories
+  const { categories, refetch } = useMenuData();
   const [isOtherCategory, setIsOtherCategory] = useState(false);
   const axiosSecure = useAxiosSecure();
-
   const { register, handleSubmit } = useForm();
   const [isSetMenu, setIsSetMenu] = useState(false);
   const [setMenuItems, setSetMenuItems] = useState([
@@ -19,37 +17,37 @@ const AddMenuItem = () => {
   ]);
   const [varieties, setVarieties] = useState([{ name: "", price: "" }]);
   const [spicyLevels, setSpicyLevels] = useState([{ name: "", price: "" }]);
+  const [addExtraItem, setAddExtraItem] = useState([{ name: "", price: "" }]);
 
   const onSubmit = async (data) => {
     const itemData = {
-      category: isOtherCategory ? data.customCategory : data.category, // Use custom category if selected
+      category: isOtherCategory ? data.customCategory : data.category,
       items: isSetMenu
         ? setMenuItems.map((item) => ({
             name: item.name,
             price: item.price,
-
             itemsIncluded: item.itemsIncluded,
           }))
         : [
             {
               name: data.itemName,
-              descrpition: data.descrpition,
+              description: data.descrpition,
               price: data.price,
               varieties: varieties.filter(
                 (variety) => variety.name && variety.price
-              ), // Include varieties if any
+              ),
               spicyLevels: spicyLevels.filter(
                 (level) => level.name && level.price
-              ), // Include spicy levels if any
+              ),
+              extraItems: addExtraItem.filter(
+                (item) => item.name && item.price
+              ),
             },
           ],
     };
-
+    console.log("Item dataaaaaa", itemData);
     try {
-      await axiosSecure.post(
-        `/api/menu/${itemData.category}/item`,
-        itemData
-      );
+      await axiosSecure.post(`/api/menu/${itemData.category}/item`, itemData);
       Swal.fire({
         title: "Success!",
         text: "Menu item added successfully!",
@@ -57,9 +55,10 @@ const AddMenuItem = () => {
         confirmButtonText: "Okay",
       });
       refetch();
-      // Reset form and state after submission
+      // Reset all state
       setVarieties([{ name: "", price: "" }]);
       setSpicyLevels([{ name: "", price: "" }]);
+      setAddExtraItem([{ name: "", price: "" }]);
       setIsOtherCategory(false);
       setIsSetMenu(false);
       setSetMenuItems([
@@ -78,12 +77,12 @@ const AddMenuItem = () => {
 
   const handleCategoryChange = (event) => {
     const selectedCategory = event.target.value;
-    setIsOtherCategory(selectedCategory === "Others"); // Set state based on selection
-    setIsSetMenu(selectedCategory === "Set Meals"); // Determine if it's a set menu
+    setIsOtherCategory(selectedCategory === "Others");
+    setIsSetMenu(selectedCategory === "Set Meals");
     if (selectedCategory !== "Set Meals") {
       setSetMenuItems([
         { name: "", price: "", itemsIncluded: [{ name: "", quantity: "" }] },
-      ]); // Reset set menu items
+      ]);
     }
   };
 
@@ -112,58 +111,59 @@ const AddMenuItem = () => {
   };
 
   const handleAddVariety = () => {
-    setVarieties((prevVarieties) => [
-      ...prevVarieties,
-      { name: "", price: "" },
-    ]);
+    setVarieties((prev) => [...prev, { name: "", price: "" }]);
   };
 
   const handleVarietyChange = (index, field, value) => {
-    setVarieties((prevVarieties) => {
-      const updatedVarieties = [...prevVarieties];
-      updatedVarieties[index][field] = value;
-      return updatedVarieties;
+    setVarieties((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
     });
   };
 
   const handleAddSpicyLevel = () => {
-    setSpicyLevels((prevLevels) => [...prevLevels, { name: "", price: "" }]);
+    setSpicyLevels((prev) => [...prev, { name: "", price: "" }]);
   };
 
   const handleSpicyLevelChange = (index, field, value) => {
-    setSpicyLevels((prevLevels) => {
-      const updatedLevels = [...prevLevels];
-      updatedLevels[index][field] = value;
-      return updatedLevels;
+    setSpicyLevels((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
     });
   };
 
-  console.log("From Front End", spicyLevels);
+  const handleAddExtraItem = () => {
+    setAddExtraItem((prev) => [...prev, { name: "", price: "" }]);
+  };
+
+  const handleAddExtraItemChange = (index, field, value) => {
+    setAddExtraItem((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
+  };
 
   return (
-    <div className="lg:flex  grid text-black   gap-2 justify-center align-middle items-center  ">
+    <div className="lg:flex grid text-black gap-2 justify-center align-middle items-center">
       <AddSpecialmenu />
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="min-w-[40vw] mx-auto p-4 min-h-[700px]
-         bg-orange-100 shadow-lg rounded-lg"
+        className="min-w-[40vw] mx-auto p-4 min-h-[700px] bg-orange-100 shadow-lg rounded-lg"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Add Menu Item</h2>
 
-        {/* Category Selection */}
-        <div className="mb-4 ">
-          <label className="block  text-gray-700 font-medium">
-            Select Category
-          </label>
+        {/* Category */}
+        <div className="mb-4">
+          <label className="block font-medium">Select Category</label>
           <select
             {...register("category", { required: true })}
             onChange={handleCategoryChange}
-            className="border rounded 
-           bg-white  focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="border rounded bg-white w-full"
           >
-            <option className="" value="">
-              Select a category
-            </option>
+            <option value="">Select a category</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -173,32 +173,26 @@ const AddMenuItem = () => {
           </select>
         </div>
 
-        {/* Custom Category Input */}
+        {/* Custom Category */}
         {isOtherCategory && (
           <div className="mb-4">
-            <label
-              htmlFor="customCategory"
-              className="block text-gray-700 font-medium"
-            >
-              Custom Category Name
-            </label>
+            <label className="block font-medium">Custom Category Name</label>
             <input
               type="text"
-              id="customCategory"
               {...register("customCategory", { required: true })}
-              className="border rounded p-2 bg-white w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="border p-2 w-full bg-white rounded"
             />
           </div>
         )}
 
-        {/* Set Menu Item Handling */}
+        {/* Set Menu or Regular */}
         {isSetMenu ? (
           setMenuItems.map((item, index) => (
             <div
               key={index}
-              className="mb-4 p-4 border rounded bg-gray-50 shadow-sm"
+              className="mb-4 border p-4 bg-white rounded shadow"
             >
-              <h3 className="text-lg font-semibold mb-2">Set Meals Item</h3>
+              <h3 className="font-semibold mb-2">Set Meal Item</h3>
               <input
                 type="text"
                 placeholder="Item Name"
@@ -206,8 +200,7 @@ const AddMenuItem = () => {
                 onChange={(e) =>
                   handleSetMenuItemChange(index, "name", e.target.value)
                 }
-                className="border rounded bg-white p-2 w-full mb-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
+                className="border p-2 w-full mb-2 rounded"
               />
               <input
                 type="number"
@@ -216,49 +209,40 @@ const AddMenuItem = () => {
                 onChange={(e) =>
                   handleSetMenuItemChange(index, "price", e.target.value)
                 }
-                step="0.01"
-                min="0"
-                className="border rounded bg-white p-2 w-full mb-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-full mb-2 rounded"
               />
-              <h4 className="text-md font-medium mb-2">Included Items</h4>
-              {item.itemsIncluded.map((includedItem, includedIndex) => (
-                <div key={includedIndex} className="flex mb-2 space-x-2">
+              <h4 className="font-medium">Included Items</h4>
+              {item.itemsIncluded.map((incItem, i) => (
+                <div key={i} className="flex space-x-2 mb-2">
                   <input
                     type="text"
                     placeholder="Included Item Name"
-                    value={includedItem.name}
+                    value={incItem.name}
                     onChange={(e) =>
-                      handleIncludedItemChange(
-                        index,
-                        includedIndex,
-                        "name",
-                        e.target.value
-                      )
+                      handleIncludedItemChange(index, i, "name", e.target.value)
                     }
-                    className="border p-2 rounded flex-1 bg-white"
-                    required
+                    className="border p-2 rounded flex-1"
                   />
                   <input
                     type="number"
-                    placeholder="Quantity"
-                    value={includedItem.quantity}
+                    placeholder="Qty"
+                    value={incItem.quantity}
                     onChange={(e) =>
                       handleIncludedItemChange(
                         index,
-                        includedIndex,
+                        i,
                         "quantity",
                         e.target.value
                       )
                     }
-                    className="border p-2 rounded w-24 bg-white"
-                    required
+                    className="border p-2 rounded w-24"
                   />
                 </div>
               ))}
               <button
                 type="button"
                 onClick={() => handleAddIncludedItem(index)}
-                className="underline mt-2"
+                className="text-sm underline"
               >
                 Add Included Item +
               </button>
@@ -267,33 +251,29 @@ const AddMenuItem = () => {
         ) : (
           <>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium">
-                Item Name
-              </label>
+              <label className="block font-medium">Item Name</label>
               <input
                 type="text"
                 {...register("itemName", { required: true })}
-                className="border rounded p-2 w-full bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-full bg-white rounded"
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium">Price</label>
+              <label className="block font-medium">Price</label>
               <input
                 type="number"
-                {...register("price", { required: true })}
                 step="0.01"
                 min="0"
-                className="border rounded p-2 w-full bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                {...register("price", { required: true })}
+                className="border p-2 w-full bg-white rounded"
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium">
-                Description
-              </label>
+              <label className="block font-medium">Description</label>
               <input
                 type="text"
                 {...register("descrpition")}
-                className="border rounded p-2 w-full bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-full bg-white rounded"
               />
             </div>
           </>
@@ -301,35 +281,31 @@ const AddMenuItem = () => {
 
         {/* Varieties */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium">Varieties</label>
-          {varieties.map((variety, index) => (
-            <div key={index} className="flex space-x-2">
+          <label className="block font-medium">Varieties</label>
+          {varieties.map((v, i) => (
+            <div key={i} className="flex space-x-2 mb-2">
               <input
                 type="text"
                 placeholder="Variety Name"
-                value={variety.name}
-                onChange={(e) =>
-                  handleVarietyChange(index, "name", e.target.value)
-                }
-                className="border rounded p-2 w-full mb-2 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                value={v.name}
+                onChange={(e) => handleVarietyChange(i, "name", e.target.value)}
+                className="border p-2 w-full rounded"
               />
               <input
                 type="number"
                 placeholder="Price"
-                value={variety.price}
+                value={v.price}
                 onChange={(e) =>
-                  handleVarietyChange(index, "price", e.target.value)
+                  handleVarietyChange(i, "price", e.target.value)
                 }
-                step="0.01"
-                min="0"
-                className="border rounded p-2 w-24 mb-2 focus:outline-none bg-white focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-24 rounded"
               />
             </div>
           ))}
           <button
             type="button"
             onClick={handleAddVariety}
-            className=" border-2 font-bold border-b-orange-950 mt-2"
+            className="text-sm underline"
           >
             Add Variety +
           </button>
@@ -337,51 +313,80 @@ const AddMenuItem = () => {
 
         {/* Spicy Levels */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium">
-            Spicy Levels
-          </label>
-          {spicyLevels.map((level, index) => (
-            <div key={index} className="flex space-x-2">
+          <label className="block font-medium">Spicy Levels</label>
+          {spicyLevels.map((s, i) => (
+            <div key={i} className="flex space-x-2 mb-2">
               <input
                 type="text"
-                placeholder="Spicy Level Name"
-                value={level.name}
+                placeholder="Level Name"
+                value={s.name}
                 onChange={(e) =>
-                  handleSpicyLevelChange(index, "name", e.target.value)
+                  handleSpicyLevelChange(i, "name", e.target.value)
                 }
-                className="border rounded bg-white p-2 w-full mb-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-full rounded"
               />
               <input
                 type="number"
                 placeholder="Price"
-                value={level.price}
+                value={s.price}
                 onChange={(e) =>
-                  handleSpicyLevelChange(index, "price", e.target.value)
+                  handleSpicyLevelChange(i, "price", e.target.value)
                 }
-                step="0.01"
-                min="0"
-                className="border rounded bg-white p-2 w-24 mb-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="border p-2 w-24 rounded"
               />
             </div>
           ))}
           <button
             type="button"
             onClick={handleAddSpicyLevel}
-            className=" border-2 font-bold border-b-orange-950 mt-2"
+            className="text-sm underline"
           >
             Add Spicy Level +
+          </button>
+        </div>
+
+        {/* Extra Items */}
+        <div className="mb-6">
+          <label className="block font-medium">Extra Items</label>
+          {addExtraItem.map((extra, i) => (
+            <div key={i} className="flex space-x-2 mb-2">
+              <input
+                type="text"
+                placeholder="Extra Item"
+                value={extra.name}
+                onChange={(e) =>
+                  handleAddExtraItemChange(i, "name", e.target.value)
+                }
+                className="border p-2 w-full rounded"
+              />
+              <input
+                type="number"
+                placeholder="Price"
+                value={extra.price}
+                onChange={(e) =>
+                  handleAddExtraItemChange(i, "price", e.target.value)
+                }
+                className="border p-2 w-24 rounded"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddExtraItem}
+            className="text-sm underline"
+          >
+            Add Extra Item +
           </button>
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
-          className="bg-red-500 text-white px-4 py-2 rounded mt-4 w-full hover:bg-orange-600"
+          className="bg-orange-500 text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition duration-300"
         >
-          Submit
+          Submit Menu Item
         </button>
       </form>
-
     </div>
   );
 };
