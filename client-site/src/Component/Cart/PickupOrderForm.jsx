@@ -100,7 +100,62 @@ const PickupOrderForm = () => {
     return newOrderNumber;
   };
 
+  // const handleOrderSubmission = async (paymentStatus) => {
+  //   const updatedItems = items.map((item) => ({
+  //     ...item,
+  //     extraItems: item.extraItems || [], // Ensure extraItems is always an array
+  //   }));
+
+  //   const orderData = {
+  //     orderNumber: generateOrderNumber(),
+  //     email: formData.email,
+  //     address: formData.address,
+  //     mobile: formData.mobile,
+  //     zipcode: formData.zipcode,
+  //     area: formData.area,
+  //     items: updatedItems,
+  //     totalPrice: totalPrice,
+  //     paymentMethod: formData.paymentMethod,
+  //     paymentStatus,
+  //     status: "x",
+  //     spiceLevel,
+  //     extraItems: items?.extraItems?.map((item) => item.name),
+  //     orderType,
+  //     chefEmail: "a",
+  //     userEmail: user?.email,
+  //     time: 1,
+  //     extraCharge,
+  //   };
+
+  //   if (orderData.totalPrice <= 0) {
+  //     Swal.fire("Error", "Your total is £0, no items to pay for.", "error");
+  //     setIsProcessing(false);
+  //     return;
+  //   }
+
+  //   try {
+  //     await axiosSecrue.post("/api/orders", orderData);
+  //     Swal.fire(
+  //       "Success",
+  //       "Your order has been placed successfully!",
+  //       "success"
+  //     );
+  //     dispatch({ type: "CLEAR_CART" });
+  //     navigate("/menus");
+  //   } catch (error) {
+  //     console.error("Order submission error:", error);
+  //     Swal.fire(
+  //       "Error",
+  //       "Failed to place your order. Please try again.",
+  //       "error"
+  //     );
+  //   } finally {
+  //     setIsProcessing(false); // Re-enable button after process finishes
+  //   }
+  // };
+
   const handleOrderSubmission = async (paymentStatus) => {
+    // Ensure each item includes extraItems with name and price
     const updatedItems = items.map((item) => ({
       ...item,
       extraItems: item.extraItems || [], // Ensure extraItems is always an array
@@ -113,13 +168,12 @@ const PickupOrderForm = () => {
       mobile: formData.mobile,
       zipcode: formData.zipcode,
       area: formData.area,
-      items: updatedItems,
+      items: updatedItems, // Use updated items with extraItems
       totalPrice: totalPrice,
       paymentMethod: formData.paymentMethod,
       paymentStatus,
-      status: "x",
+      status: "Pending",
       spiceLevel,
-      extraItems: items?.extraItems?.map((item) => item.name),
       orderType,
       chefEmail: "a",
       userEmail: user?.email,

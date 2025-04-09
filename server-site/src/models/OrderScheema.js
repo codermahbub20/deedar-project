@@ -4,7 +4,6 @@ const OrderSchema = new mongoose.Schema(
   {
     userEmail: { type: String, required: true },
     chefEmail: { type: String, required: true },
-
     items: [
       {
         name: String,
@@ -19,14 +18,12 @@ const OrderSchema = new mongoose.Schema(
             price: { type: Number, required: true },
           },
         ],
-
         subItems: [
           {
             name: String,
-          }
+          },
         ],
         createdAt: { type: Date, default: Date.now },
-        // createdAt: { type: Date, default: new Date('2024-11-13T00:00:00Z') },
       },
     ],
     paymentStatus: { type: String, }, // Required for tracking payment status

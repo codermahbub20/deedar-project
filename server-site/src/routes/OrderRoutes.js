@@ -82,7 +82,79 @@ The Deedar Express UK Restaurant Team
 };
 
 
-// API endpoint to place an order
+// // API endpoint to place an order
+// router.post("/api/orders", async (req, res) => {
+//   const {
+//     orderNumber,
+//     userEmail,
+//     chefEmail,
+//     paymentStatus,
+//     paymentMethod,
+//     items,
+//     totalPrice,
+//     orderType,
+//     spiceLevel,
+//     extraItems,
+//     email,
+//     address,
+//     zipcode,
+//     mobile,
+//     area,
+//     extraCharge,
+//   } = req.body;
+
+//   console.log('Items ', items)
+
+//   // Validate required fields
+//   if (!userEmail || !items || items.length === 0 || !totalPrice) {
+//     return res.status(400).json({
+//       error: "User email, items, and total price are required",
+//     });
+//   }
+
+//   try {
+//     // Create and save the order
+//     const newOrder = new Order({
+//       orderNumber,
+//       userEmail,
+//       chefEmail,
+//       paymentStatus,
+//       paymentMethod,
+//       orderType,
+//       items,
+//       totalPrice,
+//       status: "Pending",
+//       reason: 'Ongoing',
+//       spiceLevel,
+//       email,
+
+//       address,
+//       zipcode,
+//       mobile,
+//       area,
+//       extraCharge,
+//     });
+
+//     const savedOrder = await newOrder.save();
+
+//     // Emit event to all connected clients
+//     req.io.emit("new-order", savedOrder);
+
+//     // Send the welcome email
+//     // await sendWelcomeEmail(email, orderNumber, items);
+
+//     // Respond with success
+//     res.status(201).json({
+//       message: "Order placed successfully",
+//       data: savedOrder,
+//     });
+//   } catch (error) {
+//     console.error("Error placing order:", error);
+//     res.status(500).json({ error: "Failed to place order" });
+//   }
+// });
+
+
 router.post("/api/orders", async (req, res) => {
   const {
     orderNumber,
@@ -94,7 +166,6 @@ router.post("/api/orders", async (req, res) => {
     totalPrice,
     orderType,
     spiceLevel,
-    extraItems,
     email,
     address,
     zipcode,
@@ -103,7 +174,7 @@ router.post("/api/orders", async (req, res) => {
     extraCharge,
   } = req.body;
 
-  console.log('Items ', items)
+  console.log("Received items:", items); // Debugging log to check items
 
   // Validate required fields
   if (!userEmail || !items || items.length === 0 || !totalPrice) {
@@ -111,6 +182,21 @@ router.post("/api/orders", async (req, res) => {
       error: "User email, items, and total price are required",
     });
   }
+
+  // Validate and process `extraItems` for each item
+  const processedItems = items.map((item) => {
+    if (!item.extraItems || !Array.isArray(item.extraItems)) {
+      item.extraItems = []; // Ensure `extraItems` is always an array
+    }
+
+    // Validate each `extraItem` (optional)
+    item.extraItems = item.extraItems.map((extraItem) => ({
+      name: extraItem.name || "Unknown Extra Item",
+      price: parseFloat(extraItem.price) || 0,
+    }));
+
+    return item;
+  });
 
   try {
     // Create and save the order
@@ -121,13 +207,12 @@ router.post("/api/orders", async (req, res) => {
       paymentStatus,
       paymentMethod,
       orderType,
-      items,
+      items: processedItems, // Use processed items with validated `extraItems`
       totalPrice,
       status: "Pending",
-      reason: 'Ongoing',
+      reason: "Ongoing",
       spiceLevel,
       email,
-
       address,
       zipcode,
       mobile,
@@ -140,9 +225,6 @@ router.post("/api/orders", async (req, res) => {
     // Emit event to all connected clients
     req.io.emit("new-order", savedOrder);
 
-    // Send the welcome email
-    // await sendWelcomeEmail(email, orderNumber, items);
-
     // Respond with success
     res.status(201).json({
       message: "Order placed successfully",
@@ -153,6 +235,7 @@ router.post("/api/orders", async (req, res) => {
     res.status(500).json({ error: "Failed to place order" });
   }
 });
+
 // GET request to fetch all orders
 router.get('/api/orders', async (req, res) => {
   try {
