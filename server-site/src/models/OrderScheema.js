@@ -11,8 +11,15 @@ const OrderSchema = new mongoose.Schema(
         price: String,
         quantity: Number,
         variant: String,
-        spiceName:  String ,
+        spiceName: String,
         spicePrice: Number,
+        extraItems: [
+          {
+            name: { type: String, required: true },
+            price: { type: Number, required: true },
+          },
+        ],
+
         subItems: [
           {
             name: String,

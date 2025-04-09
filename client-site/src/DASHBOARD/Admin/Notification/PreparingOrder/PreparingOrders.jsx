@@ -358,6 +358,14 @@ const PreparingOrders = () => {
                             )}
                           </ul>
                         )}
+
+                        {item.extraItems && item.extraItems.length > 0 && (
+                          <ul style={{ paddingLeft: "15px", fontSize: "11px" }}>
+                            {item.extraItems?.map((extraItem, extraIndex) => (
+                              <li key={extraIndex}>{extraItem.name}</li>
+                            ))}
+                          </ul>
+                        )}
                       </td>
                       <td style={{ textAlign: "right", padding: "5px" }}>
                         £{" "}

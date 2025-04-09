@@ -94,6 +94,7 @@ router.post("/api/orders", async (req, res) => {
     totalPrice,
     orderType,
     spiceLevel,
+    extraItems,
     email,
     address,
     zipcode,
@@ -126,6 +127,7 @@ router.post("/api/orders", async (req, res) => {
       reason: 'Ongoing',
       spiceLevel,
       email,
+
       address,
       zipcode,
       mobile,

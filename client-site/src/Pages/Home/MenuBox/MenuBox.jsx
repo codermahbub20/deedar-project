@@ -33,6 +33,7 @@ const MenuBox = ({ addToCart }) => {
     name: "",
     price: 0,
   });
+  const [extraItems, setExtraItems] = useState([]);
   // console.log(SpecePriceName, "ccheck here ");
   // Toggle function for special menu
   const toggleSpecialMenu = () => {
@@ -46,6 +47,23 @@ const MenuBox = ({ addToCart }) => {
         : [...prev, category]
     );
   };
+
+  // Add this function to handle extra items
+  // const handleExtraItemsChange = (extraItem) => {
+  //   const exists = extraItems.find((item) => item.name === extraItem.name);
+  //   if (exists) {
+  //     setExtraItems(extraItems.filter((item) => item.name !== extraItem.name));
+  //   } else {
+  //     setExtraItems([
+  //       ...extraItems,
+  //       {
+  //         ...extraItem,
+  //         price: parseFloat(extraItem.price),
+  //       },
+  //     ]);
+  //   }
+  // };
+
   // Fetch Special Menu
   useEffect(() => {
     const fetchSpecialMenu = async () => {
@@ -135,6 +153,12 @@ const MenuBox = ({ addToCart }) => {
     // Add spice level price if selected
     if (SpecePriceName && SpecePriceName.price) {
       totalPrice += SpecePriceName.price;
+    }
+    // Add extra items prices
+    if (extraItems.length > 0) {
+      extraItems.forEach((extra) => {
+        totalPrice += extra.price;
+      });
     }
 
     return totalPrice; // Returning the price in two decimal format
@@ -531,6 +555,22 @@ const MenuBox = ({ addToCart }) => {
                                 >
                                   + £{item.price.toFixed(2)}
                                 </button>
+                              )}
+
+                              {item.extraItems?.length > 0 && (
+                                <div className="text-xs grid justify-end gap-1 text-gray-600 mt-1">
+                                  <button
+                                    className="hover:underline text-lg"
+                                    onClick={() => {
+                                      setSelectedItem({
+                                        ...item,
+                                        extraItems: item.extraItems,
+                                      });
+                                    }}
+                                  >
+                                    + add extra items
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </ul>

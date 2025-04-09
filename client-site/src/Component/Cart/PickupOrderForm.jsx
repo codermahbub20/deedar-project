@@ -34,6 +34,7 @@ const PickupOrderForm = () => {
     area: "",
     paymentMethod: "",
   });
+  console.log("items here ", items);
   // console.log("total priceeeeee", parseFloat(totalPrice));
   const [isProcessing, setIsProcessing] = useState(false);
   const [extraCharge, setExtraCharge] = useState(0);
@@ -100,6 +101,11 @@ const PickupOrderForm = () => {
   };
 
   const handleOrderSubmission = async (paymentStatus) => {
+    const updatedItems = items.map((item) => ({
+      ...item,
+      extraItems: item.extraItems || [], // Ensure extraItems is always an array
+    }));
+
     const orderData = {
       orderNumber: generateOrderNumber(),
       email: formData.email,
@@ -107,12 +113,13 @@ const PickupOrderForm = () => {
       mobile: formData.mobile,
       zipcode: formData.zipcode,
       area: formData.area,
-      items,
+      items: updatedItems,
       totalPrice: totalPrice,
       paymentMethod: formData.paymentMethod,
       paymentStatus,
       status: "x",
       spiceLevel,
+      extraItems: items?.extraItems?.map((item) => item.name),
       orderType,
       chefEmail: "a",
       userEmail: user?.email,

@@ -37,10 +37,9 @@ const Cart = () => {
     quantity: item.quantity,
     variant: item.variant || null,
     category: item.category,
-    subItems: item.items || [],
-
     spiceName: item.spice,
     spicePrice: item.spicePrice,
+    extraItems: item.extraItems || [], // Include extraItems
   }));
   console.log(formattedItems);
 
@@ -153,8 +152,17 @@ const Cart = () => {
             ? parseFloat(item.variantPrice || 0)
             : parseFloat(item.price || 0);
 
-        const totalPrice = basePrice * (parseFloat(item.quantity) || 1);
-        return Number(totalPrice.toFixed(2)); // Use toFixed(2) instead of Math.round
+        // Add the price of extraItems
+        const extraItemsPrice = item.extraItems
+          ? item.extraItems.reduce(
+              (sum, extra) => sum + parseFloat(extra.price || 0),
+              0
+            )
+          : 0;
+
+        const totalPrice =
+          (basePrice + extraItemsPrice) * (parseFloat(item.quantity) || 1);
+        return Number(totalPrice.toFixed(2)); // Use toFixed(2) for consistent formatting
       })
       .reduce((acc, curr) => acc + curr, 0);
   };
@@ -201,6 +209,17 @@ const Cart = () => {
                     {item.spice && `(${item.spice})`}
                   </span>
                   {item.quantity > 1 && `(${item.quantity}x)`}
+                  {/* Display extra items */}
+                  {item.extraItems.length > 0 && (
+                    <span className="text-sm text-gray-600">
+                      {item.extraItems
+                        .map(
+                          (extra) =>
+                            `${extra.name} (£${extra.price.toFixed(2)})`
+                        )
+                        .join(", ")}
+                    </span>
+                  )}
                   {/* Display special menu platter items under the category name */}
                   {item.category === "Special Platter" && (
                     <span className="text-sm text-gray-600">
@@ -261,15 +280,26 @@ const Cart = () => {
                 {parseFloat(
                   items
                     .map((item) => {
-                      const total =
-                        (item.spice && item.variantPrice
+                      const basePrice =
+                        item.spice && item.variantPrice
                           ? item.variantPrice + item.spicePrice
                           : item.spicelevel && !item.variantPrice
-                          ? item.spicePrice + item.price
+                          ? item.spiceprice + item.price
                           : !item.spicelevel && item.variantPrice
                           ? item.variantPrice
-                          : item.price) * (item.quantity ?? 1);
-                      return total;
+                          : item.price;
+
+                      // Add the price of extraItems
+                      const extraItemsPrice = item.extraItems
+                        ? item.extraItems.reduce(
+                            (sum, extra) => sum + extra.price,
+                            0
+                          )
+                        : 0;
+
+                      return (
+                        (basePrice + extraItemsPrice) * (item.quantity ?? 1)
+                      );
                     })
                     .reduce((acc, curr) => acc + curr, 0)
                 ).toFixed(2)}
@@ -284,15 +314,26 @@ const Cart = () => {
                 {parseFloat(
                   items
                     .map((item) => {
-                      const total =
-                        (item.spice && item.variantPrice
+                      const basePrice =
+                        item.spice && item.variantPrice
                           ? item.variantPrice + item.spicePrice
                           : item.spicelevel && !item.variantPrice
-                          ? item.spicePrice + item.price
+                          ? item.spiceprice + item.price
                           : !item.spicelevel && item.variantPrice
                           ? item.variantPrice
-                          : item.price) * (item.quantity ?? 1);
-                      return total;
+                          : item.price;
+
+                      // Add the price of extraItems
+                      const extraItemsPrice = item.extraItems
+                        ? item.extraItems.reduce(
+                            (sum, extra) => sum + extra.price,
+                            0
+                          )
+                        : 0;
+
+                      return (
+                        (basePrice + extraItemsPrice) * (item.quantity ?? 1)
+                      );
                     })
                     .reduce((acc, curr) => acc + curr, 0)
                 ).toFixed(2)}

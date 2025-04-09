@@ -21,34 +21,75 @@ const MenuModal = ({ item, onClose }) => {
     return Number(totalPrice.toFixed(2));
   };
 
+  const handleExtraItemsChange = (extraItem) => {
+    const exists = addExtraItem.find((item) => item.name === extraItem.name);
+
+    if (exists) {
+      setAddExtraItem((prev) =>
+        prev.filter((item) => item.name !== extraItem.name)
+      );
+    } else {
+      setAddExtraItem((prev) => [
+        ...prev,
+        {
+          ...extraItem,
+          price: parseFloat(extraItem.price), // Ensure price is a float
+        },
+      ]);
+    }
+  };
+
   const handleAddToCart = () => {
+    console.log("Extra Items before adding to cart:", addExtraItem); // Debugging log
+
     const totalPrice = calculateTotalPrice();
+
     const updatedItem = {
       ...item,
       variant: selectedVariety?.name || null,
       variantPrice: selectedVariety?.price || 0,
       spice: selectedSpicyLevel?.name || null,
       spicePrice: selectedSpicyLevel?.price || 0,
-      extraItems: addExtraItem,
+      extraItems: addExtraItem.map((extra) => ({
+        name: extra.name,
+        price: parseFloat(extra.price),
+      })),
       totalPrice,
     };
+
+    console.log("Final cart item:", updatedItem); // Debugging log
     dispatch({ type: "ADD_TO_CART", payload: updatedItem });
     onClose();
   };
+  // const handleAddToCart = () => {
+  //   const totalPrice = calculateTotalPrice();
+  //   const updatedItem = {
+  //     ...item,
+  //     extraItems: addExtraItem.map((extra) => ({
+  //       name: extra.name,
+  //       price: parseFloat(extra.price),
+  //     })),
+  //     totalPrice,
+  //   };
+  //   dispatch({ type: "ADD_TO_CART", payload: updatedItem });
+  //   onClose();
+  // };
 
   const handleVarietyChange = (variety) => setSelectedVariety(variety);
   const handleSpicyLevelChange = (level) => setSelectedSpicyLevel(level);
 
-  const handleExtraItemsChange = (extraItem) => {
-    const exists = addExtraItem.find((item) => item.name === extraItem.name);
-    if (exists) {
-      setAddExtraItem(
-        addExtraItem.filter((item) => item.name !== extraItem.name)
-      );
-    } else {
-      setAddExtraItem([...addExtraItem, extraItem]);
-    }
-  };
+  // const handleExtraItemsChange = (extraItem) => {
+  //   const exists = addExtraItem.find((item) => item.name === extraItem.name);
+  //   const numericExtra = { ...extraItem, price: Number(extraItem.price) };
+
+  //   if (exists) {
+  //     setAddExtraItem(
+  //       addExtraItem.filter((item) => item.name !== extraItem.name)
+  //     );
+  //   } else {
+  //     setAddExtraItem([...addExtraItem, numericExtra]);
+  //   }
+  // };
 
   console.log("Selected Extra Items:", addExtraItem);
 
