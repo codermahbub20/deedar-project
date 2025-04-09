@@ -191,7 +191,7 @@ router.post("/api/orders", async (req, res) => {
 
     // Validate each `extraItem` only if it exists
     item.extraItems = item.extraItems.map((extraItem) => ({
-      name: extraItem.name || "Unknown Extra Item",
+      name: extraItem.name || "",
       price: parseFloat(extraItem.price) || 0,
     }));
 
