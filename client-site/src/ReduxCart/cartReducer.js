@@ -20,7 +20,7 @@ if (initialState.items.length > 0) {
 
 const cartReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'ADD_TO_CART': {
+    case "ADD_TO_CART": {
       const {
         name,
         variant,
@@ -28,32 +28,36 @@ const cartReducer = (state = initialState, action) => {
         price,
         variantPrice,
         category,
-        extraItems = [], // Include extraItems from the payload
+        items = [], // Main items
+        extraItems = [], // Additional items
         spicePrice,
       } = action.payload;
-
-      const key = variant ? `${name} (${variant})` : name;
-
+    
+      const key = `${name}-${variant || "default"}-${spice || "default"}`;
+    
       console.log("Payload for ADD_TO_CART:", action.payload);
-
-      // Check if the item already exists in the cart
-      const existingItemIndex = state.items.findIndex((item) => item.key === key);
-
+    
+      const existingItemIndex = state.items.findIndex(
+        (item) =>
+          item.key === key &&
+          JSON.stringify(item.extraItems) === JSON.stringify(extraItems) &&
+          JSON.stringify(item.items) === JSON.stringify(items)
+      );
+    
       let updatedItems;
       if (existingItemIndex !== -1) {
-        // If the item exists, update its quantity and merge extraItems
         const updatedItem = {
           ...state.items[existingItemIndex],
           quantity: state.items[existingItemIndex].quantity + 1,
           extraItems: [
             ...state.items[existingItemIndex].extraItems,
-            ...extraItems, // Merge extraItems
+            ...extraItems,
           ],
+          items: [...state.items[existingItemIndex].items, ...items],
         };
         updatedItems = [...state.items];
         updatedItems[existingItemIndex] = updatedItem;
       } else {
-        // If the item does not exist, add it as a new item
         const newItem = {
           category,
           key,
@@ -65,17 +69,17 @@ const cartReducer = (state = initialState, action) => {
           variant: variant || null,
           price: price + (variantPrice || 0),
           variantPrice: variantPrice || 0,
-          extraItems, // Add extraItems to the new item
+          items, // Main items
+          extraItems, // Additional items
           quantity: 1,
         };
         updatedItems = [...state.items, newItem];
       }
-
+    
       console.log("Updated Items:", updatedItems);
-
-      // Save updated cart to localStorage
-      localStorage.setItem('cartItems', JSON.stringify(updatedItems));
-
+    
+      localStorage.setItem("cartItems", JSON.stringify(updatedItems));
+    
       return {
         ...state,
         items: updatedItems,
@@ -84,7 +88,8 @@ const cartReducer = (state = initialState, action) => {
             total +
             ((item.variantPrice || item.price) +
               (item.spiceprice || 0) +
-              item.extraItems.reduce((sum, extra) => sum + extra.price, 0)) * // Include extraItems price
+              (item.items?.reduce((sum, mainItem) => sum + mainItem.price, 0) || 0) +
+              (item.extraItems?.reduce((sum, extra) => sum + extra.price, 0) || 0)) *
               item.quantity,
           0
         ),

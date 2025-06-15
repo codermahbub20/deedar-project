@@ -145,23 +145,17 @@ const MenuBox = ({ addToCart }) => {
   const calculateTotalPrice = (item) => {
     let totalPrice = item.price || 0;
 
-    // Add variant price if available
-    if (SpecePriceName && SpecePriceName.price) {
-      totalPrice += SpecePriceName.price;
-    }
-
     // Add spice level price if selected
-    if (SpecePriceName && SpecePriceName.price) {
-      totalPrice += SpecePriceName.price;
-    }
-    // Add extra items prices
-    if (extraItems.length > 0) {
-      extraItems.forEach((extra) => {
-        totalPrice += extra.price;
+    totalPrice += item.spicePrice || 0;
+
+    // Add extra items prices if available
+    if (item.extraItems && item.extraItems.length > 0) {
+      item.extraItems.forEach((extra) => {
+        totalPrice += extra.price || 0;
       });
     }
 
-    return totalPrice; // Returning the price in two decimal format
+    return parseFloat(totalPrice).toFixed(2); // Ensure the price is returned as a string with two decimal places
   };
 
   return (
@@ -462,11 +456,11 @@ const MenuBox = ({ addToCart }) => {
                               <span
                                 onClick={() => {
                                   const totalPrice = calculateTotalPrice(item);
-                                  addToCart({
-                                    ...item,
-                                    spice: SpecePriceName?.name || null,
-                                    totalPrice,
-                                  });
+                                  // addToCart({
+                                  //   ...item,
+                                  //   spice: SpecePriceName?.name || null,
+                                  //   totalPrice,
+                                  // });
                                   refetch();
                                 }}
                                 className=" hover:boder-b-2 hover:border-b hover:border-b-red-950 cursor-pointer "
@@ -556,22 +550,6 @@ const MenuBox = ({ addToCart }) => {
                                   + £{item.price.toFixed(2)}
                                 </button>
                               )}
-
-                              {item.extraItems?.length > 0 && (
-                                <div className="text-xs grid justify-end gap-1 text-gray-600 mt-1">
-                                  <button
-                                    className="hover:underline text-lg"
-                                    onClick={() => {
-                                      setSelectedItem({
-                                        ...item,
-                                        extraItems: item.extraItems,
-                                      });
-                                    }}
-                                  >
-                                    + add extra items
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           </ul>
                           <span className=" text-lga text-gray-600">
@@ -611,16 +589,20 @@ const MenuBox = ({ addToCart }) => {
             subcategories={specialMenuCat}
             priceId={SpecialMenuprice}
             onAddToCart={(platter) => {
-              // Ensure platter is an array and contains items
-              if (Array.isArray(platter.items) && platter.items.length <= 3) {
-                console.log(platter);
+              console.log("Platter object:", platter);
+              if (
+                platter &&
+                Array.isArray(platter.items) &&
+                platter.items.length > 0 &&
+                platter.items.length <= 3
+              ) {
                 dispatch({ type: "ADD_TO_CART", payload: platter });
                 setIsStillCantDecideOpen(false);
               } else {
                 Swal.fire({
                   icon: "warning",
                   title: "Limit Exceeded",
-                  text: "You can only select up to two items.",
+                  text: "You can only select up to three items.",
                 });
               }
             }}

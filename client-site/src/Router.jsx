@@ -48,11 +48,10 @@ const router = createBrowserRouter([
         element: <DashboardLayout role="admin" />,
         children: [
           {
-            path: "",
+            index: true, // Default route for /dashboard
             element: (
-              <AdminRoute>
-                <AdminProfile />
-              </AdminRoute>
+              // <AdminRoute>
+              <Profile />
             ),
           },
           {
@@ -83,7 +82,7 @@ const router = createBrowserRouter([
             path: "Preparing-list",
             element: (
               <AdminRoute>
-                <PreparingOrders />{" "}
+                <PreparingOrders />
               </AdminRoute>
             ),
           },
@@ -119,17 +118,14 @@ const router = createBrowserRouter([
           },
           { path: "profile", element: <Profile /> },
           { path: "stats", element: <AdminProfile /> },
-          { path: "add-menu", element: <Addmenu /> },
-          { path: "dishes", element: <AllMenuList /> },
           { path: "upocomming-order", element: <UpcomingOrders /> },
-
           {
             path: "orderList",
-            element: <OrderLlist />, // This will display the order list
+            element: <OrderLlist />,
             children: [
-              { path: "strip-order", element: <Stripelist /> }, // Nested under orderList
-              { path: "cash-on-delivery", element: <CashOrder /> }, // Nested under orderList
-              { path: "pickup", element: <PickupOrder /> }, // Nested under orderList
+              { path: "strip-order", element: <Stripelist /> },
+              { path: "cash-on-delivery", element: <CashOrder /> },
+              { path: "pickup", element: <PickupOrder /> },
             ],
           },
         ],

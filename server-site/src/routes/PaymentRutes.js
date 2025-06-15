@@ -22,7 +22,8 @@ router.post('/api/create-payment-intent', async (req, res) => {
     // Create a PaymentIntent with the amount
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents, // Amount in cents
-      currency: 'usd', // Adjust this as needed
+      currency: 'usd',
+       capture_method: "manual", // Adjust this as needed
     });
 
     // Send the client secret to the frontend

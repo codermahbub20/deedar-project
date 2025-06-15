@@ -130,7 +130,7 @@ const Specialmenulist = () => {
                 <div key={subcategory.name}>
                   <span className=" flex justify-start py-6 align-start items-start gap-2 ">
                     <h3 className=" text-xl font-semibold underline  pt-2 ">
-                      {subcategory.name} - ${subcategory.price}
+                      {subcategory.name} - £{subcategory.price}
                     </h3>
                     <button
                       onClick={() =>

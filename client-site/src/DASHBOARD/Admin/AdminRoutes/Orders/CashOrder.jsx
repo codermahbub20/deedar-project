@@ -65,7 +65,7 @@ const CashOrder = () => {
         );
       });
   }, [sortOption]);
-
+  console.log(orders);
   // Sort Orders Based on Sort Option
   const sortOrders = (orders, option) => {
     let sorted = [...orders];
@@ -256,7 +256,15 @@ const CashOrder = () => {
                     <td className="px-4 py-2">
                       £{order?.totalPrice.toFixed(2)}
                     </td>
-                    <td className="px-4 py-2">{order?.paymentStatus}</td>
+                    <td
+                      className={`px-4 py-2 ${
+                        order?.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {order?.status === "Rejected" ? "Rejected" : "Accepted"}
+                    </td>
                     {/* <td className="px-4 py-2">{order?.spiceLevel}</td> */}
                     <td className="px-4 py-2 flex space-x-4">
                       <button

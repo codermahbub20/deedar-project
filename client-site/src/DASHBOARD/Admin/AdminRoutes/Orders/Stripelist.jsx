@@ -240,7 +240,15 @@ const Stripelist = () => {
                       {formatDate(order?.createdAt)}
                     </td>
                     <td className="px-4 py-2">£{order?.totalPrice}</td>
-                    <td className="px-4 py-2">{order?.paymentStatus}</td>
+                    <td
+                      className={`px-4 py-2 ${
+                        order?.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {order?.status === "Rejected" ? "Rejected" : "Accepted"}
+                    </td>
                     {/* <td className="px-4 py-2">{order?.spiceLevel}</td> */}
                     <td className="px-4 py-2 flex space-x-4">
                       <button

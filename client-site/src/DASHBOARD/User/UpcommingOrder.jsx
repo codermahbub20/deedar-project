@@ -30,31 +30,27 @@ const UpcomingOrders = () => {
       }
     };
 
-    const pollOrders = async () => {
-      await fetchUserOrders();
-      setTimeout(pollOrders, 1); // Millisecond interval
-    };
+    // Polling mechanism with setInterval
+    const intervalId = setInterval(() => {
+      fetchUserOrders();
+    }, 5000); // Fetch orders every 5 seconds
 
-    pollOrders();
-
-    return () => clearTimeout(pollOrders);
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, [user?.email]);
 
+  // console.log(orders, "orders");
+
   // Modify your calculateRemainingTime function
-  const calculateRemainingTime = (
-    updatedAt,
-    preparationTime,
-    extendedTime = 0
-  ) => {
+  const calculateRemainingTime = (updatedAt, preparationTime) => {
     const now = new Date();
     const updatedTime = new Date(updatedAt);
-    const totalSeconds = (preparationTime + extendedTime) * 60;
+    const totalSeconds = preparationTime * 60;
     const elapsedSeconds = Math.floor((now - updatedTime) / 1000);
     const remainingSeconds = totalSeconds - elapsedSeconds;
 
-    // Return "00:00" if time has expired
     if (remainingSeconds <= 0) {
-      return "00:00";
+      return "00:00"; // Time expired
     }
 
     const minutes = Math.floor(remainingSeconds / 60);
@@ -67,18 +63,15 @@ const UpcomingOrders = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => ({
+      setOrders((prevOrders) => {
+        return prevOrders.map((order) => ({
           ...order,
-          remainingTime: calculateRemainingTime(
-            order.updatedAt,
-            order.time,
-            order.extendedTime || 0
-          ),
-          displayTime: order.time + (order.extendedTime || 0),
-        }))
-      );
-    }, 1000);
+          remainingTime: calculateRemainingTime(order.updatedAt, order.time),
+        }));
+      });
+    }, 1000); // Update every second
+
+    // Clear interval on component unmount
     return () => clearInterval(interval);
   }, [orders]);
 
@@ -107,60 +100,66 @@ const UpcomingOrders = () => {
         <h3 className="text-2xl font-bold mb-4">Your Upcoming Orders</h3>
         {orders.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 text-black lg:grid-cols-2 gap-4">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="border rounded-lg p-4 shadow-md bg-white"
-              >
-                <h4 className="text-xl font-semibold mb-2">
-                  Order #{order.orderNumber}
-                </h4>
-                <p>
-                  <strong>User Email:</strong> {order.userEmail}
-                </p>
-                <p>
-                  <strong>Total Price:</strong> £
-                  {order.totalPrice ? Number(order.totalPrice).toFixed(2) : 0}
-                </p>
-                <p>
-                  <strong>Preparation Time:</strong> {order.time} minutes
-                </p>
-                <h5 className="font-medium mt-3">Items:</h5>
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex text-xs flex-wrap gap-1">
-                    {item.subItems.length > 0 &&
-                      item.subItems?.map((subItem) => subItem.name).join(", ")}
-                    {item.name}{" "}
-                    {item.subItems.map((subItem, idx) => (
-                      <div key={idx}>
-                        <span className="text-xs">{subItem.name}</span>
-                      </div>
-                    ))}
-                    <span>
-                      {" "}
-                      variant :`({item.variant}) ` spicelevel:`($
-                      {item.spiceName}`
-                    </span>
-                    (x{item.quantity})
+            {orders.map((order) =>
+              order?.status === "Pending" || order?.status === "Preparing" ? (
+                <div
+                  key={order._id}
+                  className="border rounded-lg p-4 shadow-md bg-white"
+                >
+                  <h4 className="text-xl font-semibold mb-2">
+                    Order #{order.orderNumber}
+                  </h4>
+                  <p>
+                    <strong>User Email:</strong> {order.userEmail}
+                  </p>
+                  <p>
+                    <strong>Total Price:</strong> £
+                    {order.totalPrice ? Number(order.totalPrice).toFixed(2) : 0}
+                  </p>
+                  <p>
+                    <strong>Preparation Time:</strong> {order.time} minutes
+                  </p>
+                  <h5 className="font-medium mt-3">Items:</h5>
+                  {order.items.map((item, index) => (
+                    <div key={index} className="flex text-xs flex-wrap gap-1">
+                      {item.subItems.length > 0 &&
+                        item.subItemsr
+                          ?.map((subItem) => subItem.name)
+                          .join(", ")}
+                      {item.name}{" "}
+                      {item.subItems.map((subItem, idx) => (
+                        <div key={idx}>
+                          <span className="text-xs">{subItem.name}</span>
+                        </div>
+                      ))}
+                      <span>
+                        {" "}
+                        variant :`({item.variant}) ` spicelevel:`($
+                        {item.spiceName}`
+                      </span>
+                      (x{item.quantity})
+                    </div>
+                  ))}
+                  <div className="mt-3">
+                    <h5 className="font-medium text-black">
+                      Remaining Time:
+                      {order.remainingTime}
+                    </h5>
+                    <p>{getStatusDisplay(order.status)}</p>
                   </div>
-                ))}
-                <div className="mt-3">
-                  <h5 className="font-medium text-black">
-                    Remaining Time:
-                    {order.status === "Expired" ? "00:00" : order.remainingTime}
-                  </h5>
-                  <p>{getStatusDisplay(order.status)}</p>
+                  <div className="flex flex-wrap justify-between items-center">
+                    <button
+                      onClick={() => handleRowClick(order)}
+                      className="mt-3 border-2 border-green-300 text-green-600 py-1 px-3 rounded"
+                    >
+                      PRINT
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap justify-between items-center">
-                  <button
-                    onClick={() => handleRowClick(order)}
-                    className="mt-3 border-2 border-green-300 text-green-600 py-1 px-3 rounded"
-                  >
-                    PRINT
-                  </button>
-                </div>
-              </div>
-            ))}
+              ) : (
+                ""
+              )
+            )}
           </div>
         ) : (
           <p>No orders to display</p>
@@ -257,6 +256,14 @@ const UpcomingOrders = () => {
                                 <li key={subIndex}>{subItem.name}</li>
                               )
                             )}
+                          </ul>
+                        )}
+
+                        {item.extraItems && item.extraItems.length > 0 && (
+                          <ul style={{ paddingLeft: "15px", fontSize: "11px" }}>
+                            {item.extraItems?.map((extraItem, extraIndex) => (
+                              <li key={extraIndex}>{extraItem.name}</li>
+                            ))}
                           </ul>
                         )}
                       </td>

@@ -40,9 +40,7 @@ const AllMenuList = () => {
 
     if (result.isConfirmed) {
       try {
-        await axiosSecure.delete(
-          `/api/menu/${category}/item/${name}`
-        );
+        await axiosSecure.delete(`/api/menu/${category}/item/${name}`);
         if (Array.isArray(menu)) {
           const updatedMenu = menu.map((cat) =>
             cat.category === category
@@ -132,9 +130,9 @@ const AllMenuList = () => {
 
     try {
       const response = await axiosSecure.put(
-        `/v4/menu/${
-          editingItem.category
-        }/item/${encodeURIComponent(cleanName(editingItem.name))}`,
+        `/v4/menu/${editingItem.category}/item/${encodeURIComponent(
+          cleanName(editingItem.name)
+        )}`,
         updatedItem
       );
       if (response.status === 200) {
@@ -261,7 +259,7 @@ const AllMenuList = () => {
                               <strong>Spicy Levels:</strong>
                               <span>
                                 <span key={idx}>
-                                  {level.name} (+${level.price}){" "}
+                                  {level.name} (+£{level.price}){" "}
                                 </span>{" "}
                               </span>
                             </p>
@@ -273,7 +271,7 @@ const AllMenuList = () => {
                         {item.varieties.length > 0
                           ? item.varieties.map((variety, idx) => (
                               <span key={idx}>
-                                {variety.name} (+${variety.price}){" "}
+                                {variety.name} (+£{variety.price}){" "}
                               </span>
                             ))
                           : ""}

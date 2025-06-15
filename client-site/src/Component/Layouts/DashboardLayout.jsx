@@ -222,6 +222,21 @@ const DashboardLayout = () => {
                 <MenuItem to="user-list" icon={<FaUsers />} label="All Users" />
               </>
             )}
+            {role === "guest" && (
+              <>
+                <MenuItem to="profile" icon={<FaUser />} label="Profile" />
+                <MenuItem
+                  to="my-orders"
+                  icon={<FaHistory />}
+                  label="Order History"
+                />
+                <MenuItem
+                  to="upocomming-order"
+                  icon={<FaBowlFood />}
+                  label="My Orders"
+                />
+              </>
+            )}
             {user && (
               <li>
                 <button

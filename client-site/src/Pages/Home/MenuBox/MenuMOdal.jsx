@@ -9,39 +9,68 @@ const MenuModal = ({ item, onClose }) => {
   const [addExtraItem, setAddExtraItem] = useState([]);
   const dispatch = useDispatch();
 
+  // const calculateTotalPrice = () => {
+  //   let totalPrice = item.price || 0;
+
+  //   // Add variety price if selected
+  //   if (selectedVariety) totalPrice += selectedVariety.price || 0;
+
+  //   // Add spice level price if selected
+  //   if (selectedSpicyLevel) totalPrice += selectedSpicyLevel.price || 0;
+
+  //   // Add extra items prices if available
+  //   if (addExtraItem && addExtraItem.length > 0) {
+  //     addExtraItem.forEach((extra) => {
+  //       totalPrice += extra.price || 0;
+  //     });
+  //   }
+
+  //   return Number(totalPrice.toFixed(2)); // Ensure the price is returned as a number with two decimal places
+  // };
+
+
   const calculateTotalPrice = () => {
     let totalPrice = item.price || 0;
+  
     if (selectedVariety) totalPrice += selectedVariety.price || 0;
     if (selectedSpicyLevel) totalPrice += selectedSpicyLevel.price || 0;
-    if (addExtraItem.length > 0) {
-      addExtraItem.forEach((extra) => {
+  
+    if (addExtraItem && Object.keys(addExtraItem).length > 0) {
+      Object.values(addExtraItem).forEach((extra) => {
         totalPrice += extra.price || 0;
       });
     }
+  
     return Number(totalPrice.toFixed(2));
   };
+  
 
-  const handleExtraItemsChange = (extraItem) => {
-    const exists = addExtraItem.find((item) => item.name === extraItem.name);
+  // const handleExtraItemsChange = (extraItem) => {
+  //   const exists = addExtraItem.find((item) => item.name === extraItem.name);
 
-    if (exists) {
-      setAddExtraItem((prev) =>
-        prev.filter((item) => item.name !== extraItem.name)
-      );
-    } else {
-      setAddExtraItem((prev) => [
-        ...prev,
-        {
-          ...extraItem,
-          price: parseFloat(extraItem.price), // Ensure price is a float
-        },
-      ]);
-    }
+  //   if (exists) {
+  //     // Remove the extra item if it is already selected
+  //     setAddExtraItem(
+  //       addExtraItem.filter((item) => item.name !== extraItem.name)
+  //     );
+  //   } else {
+  //     // Add the extra item
+  //     setAddExtraItem([
+  //       ...addExtraItem,
+  //       { ...extraItem, price: parseFloat(extraItem.price) },
+  //     ]);
+  //   }
+  // };
+
+  const handleExtraItemsChange = (itemId, extraItem) => {
+    setAddExtraItem((prev) => ({
+      ...prev,
+      [itemId]: { ...extraItem, price: parseFloat(extraItem.price) },
+    }));
   };
+  
 
   const handleAddToCart = () => {
-    console.log("Extra Items before adding to cart:", addExtraItem); // Debugging log
-
     const totalPrice = calculateTotalPrice();
 
     const updatedItem = {
@@ -50,48 +79,19 @@ const MenuModal = ({ item, onClose }) => {
       variantPrice: selectedVariety?.price || 0,
       spice: selectedSpicyLevel?.name || null,
       spicePrice: selectedSpicyLevel?.price || 0,
-      extraItems: addExtraItem.map((extra) => ({
+      extraItems: Object.values(addExtraItem).map((extra) => ({
         name: extra.name,
         price: parseFloat(extra.price),
       })),
       totalPrice,
     };
 
-    console.log("Final cart item:", updatedItem); // Debugging log
     dispatch({ type: "ADD_TO_CART", payload: updatedItem });
     onClose();
   };
-  // const handleAddToCart = () => {
-  //   const totalPrice = calculateTotalPrice();
-  //   const updatedItem = {
-  //     ...item,
-  //     extraItems: addExtraItem.map((extra) => ({
-  //       name: extra.name,
-  //       price: parseFloat(extra.price),
-  //     })),
-  //     totalPrice,
-  //   };
-  //   dispatch({ type: "ADD_TO_CART", payload: updatedItem });
-  //   onClose();
-  // };
 
   const handleVarietyChange = (variety) => setSelectedVariety(variety);
   const handleSpicyLevelChange = (level) => setSelectedSpicyLevel(level);
-
-  // const handleExtraItemsChange = (extraItem) => {
-  //   const exists = addExtraItem.find((item) => item.name === extraItem.name);
-  //   const numericExtra = { ...extraItem, price: Number(extraItem.price) };
-
-  //   if (exists) {
-  //     setAddExtraItem(
-  //       addExtraItem.filter((item) => item.name !== extraItem.name)
-  //     );
-  //   } else {
-  //     setAddExtraItem([...addExtraItem, numericExtra]);
-  //   }
-  // };
-
-  console.log("Selected Extra Items:", addExtraItem);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -147,24 +147,24 @@ const MenuModal = ({ item, onClose }) => {
           )}
 
           {/* Extra Items Selection */}
-          {item.extraItems?.length > 0 && (
+          {item?.extraItems?.length > 0 && (
             <div>
               <h3 className="font-medium mb-2 text-green-900 text-xl">
                 Select Extra Items:
               </h3>
               {item.extraItems.map((extra, idx) => (
-                <label key={idx} className="block">
-                  <input
-                    type="checkbox"
-                    checked={addExtraItem.some(
-                      (item) => item.name === extra.name
-                    )}
-                    onChange={() => handleExtraItemsChange(extra)}
-                    className="mr-2"
-                  />
-                  {extra.name} - £{parseFloat(extra.price).toFixed(2)}
-                </label>
-              ))}
+  <label key={idx} className="block">
+    <input
+      type="radio"
+      name={`extra-${item.id}`} // Ensures only one radio is selected per item
+      checked={addExtraItem[item.id]?.name === extra.name}
+      onChange={() => handleExtraItemsChange(item.id, extra)}
+      className="mr-2"
+    />
+    {extra.name} - £{parseFloat(extra.price).toFixed(2)}
+  </label>
+))}
+
             </div>
           )}
         </div>

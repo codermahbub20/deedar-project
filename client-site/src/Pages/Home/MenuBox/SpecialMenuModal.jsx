@@ -59,11 +59,15 @@ const SpecialMenuModal = ({
         updatedSelections = [...currentSelections, item];
       }
 
-      return { ...prev, [subcategoryName]: updatedSelections };
+      const updatedState = { ...prev, [subcategoryName]: updatedSelections };
+      console.log("Updated Selected Items:", updatedState); // Debugging log
+      return updatedState;
     });
   };
 
   const handleSubmit = () => {
+    console.log("Selected Items:", selectedItems); // Debugging log
+
     const platter = Object.values(selectedItems).flat();
     const platterKey = `special-${set}-${Date.now()}`;
 
@@ -74,6 +78,8 @@ const SpecialMenuModal = ({
       items: platter,
       price: priceId,
     };
+
+    console.log("Platter to Add:", platterWithCategory); // Debugging log
 
     dispatch({
       type: "ADD_TO_CART",

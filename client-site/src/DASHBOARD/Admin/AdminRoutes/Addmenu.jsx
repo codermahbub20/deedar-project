@@ -31,7 +31,7 @@ const AddMenuItem = () => {
         : [
             {
               name: data.itemName,
-              description: data.descrpition,
+              description: data?.descrpition,
               price: data.price,
               varieties: varieties.filter(
                 (variety) => variety.name && variety.price
