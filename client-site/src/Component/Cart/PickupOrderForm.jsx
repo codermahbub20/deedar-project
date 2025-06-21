@@ -9,7 +9,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Swal from "sweetalert2";
-// import axios from "axios";
 import useAuth from "../../Hooks/useAuth";
 import { useDispatch } from "react-redux";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
@@ -17,11 +16,8 @@ import useAxiosSecure from "../../Hooks/useAxiosSecure";
 const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 const stripePromise = loadStripe(stripePublicKey);
 
-// Sample delivery charge mapping
-
 const PickupOrderForm = () => {
   const axiosSecrue = useAxiosSecure();
-
   const { user } = useAuth();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -34,59 +30,48 @@ const PickupOrderForm = () => {
     area: "",
     paymentMethod: "",
   });
-  console.log("items here ", items);
-  // console.log("total priceeeeee", parseFloat(totalPrice));
   const [isProcessing, setIsProcessing] = useState(false);
   const [extraCharge, setExtraCharge] = useState(0);
   const [deliveryLocations, setDeliveryLocations] = useState([]);
   const navigate = useNavigate();
-  // const removeFromCart = (item) =>
-  //   dispatch({ type: "REMOVE_FROM_CART", payload: item });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // Fetch locations from the backend using Axios
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         const response = await axiosSecrue.get("/api/delivery-location");
-        setDeliveryLocations(response.data.data); // Update the state with fetched data
+        setDeliveryLocations(response.data.data);
       } catch (error) {
         console.error("Error fetching locations:", error);
         alert("Failed to fetch locations");
       }
     };
-
     fetchLocations();
   }, []);
 
-  // Handle area selection and update delivery charge
   const handleAreaChange = (e) => {
     const selectedArea = e.target.value;
     setFormData({ ...formData, area: selectedArea });
-
-    // Find the selected location's price
     const selectedLocation = deliveryLocations.find(
       (loc) => loc.locationName === selectedArea
     );
-
-    // Update extra charge
     setExtraCharge(selectedLocation ? selectedLocation.price : 0);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isProcessing) return; // Prevent multiple form submissions
-    setIsProcessing(true); // Disable button immediately after clicking
+    if (isProcessing) return;
+    setIsProcessing(true);
     if (formData.paymentMethod === "stripe") {
-      setIsProcessing(true);
+      // Stripe handled in StripePaymentForm
+      setIsProcessing(false);
     } else if (formData.paymentMethod === "cash") {
       await handleOrderSubmission("cash");
     } else {
-      // Alert if no payment method is selected
       Swal.fire("Error", "Please select a payment method", "error");
       setIsProcessing(false);
     }
@@ -100,65 +85,10 @@ const PickupOrderForm = () => {
     return newOrderNumber;
   };
 
-  // const handleOrderSubmission = async (paymentStatus) => {
-  //   const updatedItems = items.map((item) => ({
-  //     ...item,
-  //     extraItems: item.extraItems || [], // Ensure extraItems is always an array
-  //   }));
-
-  //   const orderData = {
-  //     orderNumber: generateOrderNumber(),
-  //     email: formData.email,
-  //     address: formData.address,
-  //     mobile: formData.mobile,
-  //     zipcode: formData.zipcode,
-  //     area: formData.area,
-  //     items: updatedItems,
-  //     totalPrice: totalPrice,
-  //     paymentMethod: formData.paymentMethod,
-  //     paymentStatus,
-  //     status: "x",
-  //     spiceLevel,
-  //     extraItems: items?.extraItems?.map((item) => item.name),
-  //     orderType,
-  //     chefEmail: "a",
-  //     userEmail: user?.email,
-  //     time: 1,
-  //     extraCharge,
-  //   };
-
-  //   if (orderData.totalPrice <= 0) {
-  //     Swal.fire("Error", "Your total is £0, no items to pay for.", "error");
-  //     setIsProcessing(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     await axiosSecrue.post("/api/orders", orderData);
-  //     Swal.fire(
-  //       "Success",
-  //       "Your order has been placed successfully!",
-  //       "success"
-  //     );
-  //     dispatch({ type: "CLEAR_CART" });
-  //     navigate("/menus");
-  //   } catch (error) {
-  //     console.error("Order submission error:", error);
-  //     Swal.fire(
-  //       "Error",
-  //       "Failed to place your order. Please try again.",
-  //       "error"
-  //     );
-  //   } finally {
-  //     setIsProcessing(false); // Re-enable button after process finishes
-  //   }
-  // };
-
-  const handleOrderSubmission = async (paymentStatus) => {
-    // Ensure each item includes extraItems with name and price
+  const handleOrderSubmission = async (paymentStatus, paymentIntentId = null) => {
     const updatedItems = items.map((item) => ({
       ...item,
-      extraItems: item.extraItems || [], // Ensure extraItems is always an array
+      extraItems: item.extraItems || [],
     }));
 
     const orderData = {
@@ -168,8 +98,8 @@ const PickupOrderForm = () => {
       mobile: formData.mobile,
       zipcode: formData.zipcode,
       area: formData.area,
-      items: updatedItems, // Use updated items with extraItems
-      totalPrice: totalPrice,
+      items: updatedItems,
+      totalPrice: totalPrice + extraCharge,
       paymentMethod: formData.paymentMethod,
       paymentStatus,
       status: "Pending",
@@ -179,6 +109,7 @@ const PickupOrderForm = () => {
       userEmail: user?.email,
       time: 1,
       extraCharge,
+      paymentIntentId,
     };
 
     if (orderData.totalPrice <= 0) {
@@ -204,7 +135,7 @@ const PickupOrderForm = () => {
         "error"
       );
     } finally {
-      setIsProcessing(false); // Re-enable button after process finishes
+      setIsProcessing(false);
     }
   };
 
@@ -219,7 +150,7 @@ const PickupOrderForm = () => {
 
         <div className="flex gap-5">
           <p>Order Type: {orderType}</p>
-          <p className="mb-3">Total Price: £{totalPrice.toFixed(2)}</p>
+          <p className="mb-3">Total Price: £{(totalPrice + extraCharge).toFixed(2)}</p>
         </div>
         {/* Email Field */}
         <InputField
@@ -311,9 +242,10 @@ const PickupOrderForm = () => {
           <Elements stripe={stripePromise}>
             <StripePaymentForm
               totalPrice={totalPrice + extraCharge}
-              onPaymentSuccess={(paymentMethodId) =>
-                handleOrderSubmission("success", paymentMethodId)
+              onPaymentSuccess={(paymentIntentId) =>
+                handleOrderSubmission("success", paymentIntentId)
               }
+              email={formData.email}
             />
           </Elements>
         )}
@@ -338,35 +270,77 @@ const PickupOrderForm = () => {
   );
 };
 
-const StripePaymentForm = ({ totalPrice, onPaymentSuccess }) => {
+const StripePaymentForm = ({ totalPrice, onPaymentSuccess, email }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const axiosSecure = useAxiosSecure();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleStripeSubmit = async (e) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
+const handleStripeSubmit = async () => {
+  if (!stripe || !elements) {
+    Swal.fire("Error", "Stripe is not loaded yet.", "error");
+    return;
+  }
+  setIsProcessing(true);
 
+  try {
+    // 1. Create PaymentIntent on backend
+    const { data } = await axiosSecure.post("/api/create-payment-intent", {
+      totalPrice,
+      customer_email: email,
+    });
+    console.log("PaymentIntent response:", data);
+
+    const clientSecret = data?.clientSecret;
+    if (!clientSecret) {
+      Swal.fire("Error", "No client secret returned from server.", "error");
+      setIsProcessing(false);
+      return;
+    }
+
+    // 2. Confirm payment on frontend
     const cardElement = elements.getElement(CardElement);
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement,
+    console.log("CardElement:", cardElement);
+    if (!cardElement) {
+      Swal.fire("Error", "Card input not found. Please refresh the page.", "error");
+      setIsProcessing(false);
+      return;
+    }
+
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: { email },
+      },
     });
 
-    if (error) {
-      console.error("Stripe error:", error);
-      Swal.fire(
-        "Error",
-        "Failed to process payment. Please try again.",
-        "error"
-      );
-    } else {
-      Swal.fire("Success", "Payment processed successfully!", "success");
-      onPaymentSuccess(paymentMethod.id);
+    console.log("Stripe confirmCardPayment result:", result);
+
+    // *** ADD THIS: ***
+    if (result.error) {
+      console.error("Stripe error:", result.error);
+      Swal.fire("Error", result.error.message, "error");
+      setIsProcessing(false);
+      return;
     }
-  };
+    // ******************
+
+    if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
+      Swal.fire("Success", "Payment processed successfully!", "success");
+      onPaymentSuccess(result.paymentIntent.id);
+    } else {
+      Swal.fire("Error", "Payment failed. Please try again.", "error");
+    }
+  } catch (err) {
+    console.error("Stripe payment error:", err);
+    Swal.fire("Error", "Payment failed. Please try again.", "error");
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   return (
-    <form>
+    <div>
       <CardElement
         options={{
           style: {
@@ -376,14 +350,14 @@ const StripePaymentForm = ({ totalPrice, onPaymentSuccess }) => {
         }}
       />
       <button
-        type="submit"
+        type="button"
         className="mt-4 text-white bg-green-600 hover:bg-green-700 rounded px-4 py-2"
-        disabled={!stripe}
+        disabled={!stripe || isProcessing}
         onClick={handleStripeSubmit}
       >
-        Pay £{totalPrice.toFixed(2)}
+        {isProcessing ? "Processing..." : `Pay £${totalPrice.toFixed(2)}`}
       </button>
-    </form>
+    </div>
   );
 };
 
